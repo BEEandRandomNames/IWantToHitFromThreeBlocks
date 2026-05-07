@@ -8,7 +8,9 @@
 		"B_E_E"
 	],
 	"contact": {
-		"sources": "https://github.com/BEEandRandomNames/IWantToHitFromThreeBlocks"
+		"homepage": "https://github.com/BEEandRandomNames/IWantToHitFromThreeBlocks",
+		"sources": "https://github.com/BEEandRandomNames/IWantToHitFromThreeBlocks",
+		"issues": "https://github.com/BEEandRandomNames/IWantToHitFromThreeBlocks/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/iwanttohitfromthreeblocks/icon.png",
