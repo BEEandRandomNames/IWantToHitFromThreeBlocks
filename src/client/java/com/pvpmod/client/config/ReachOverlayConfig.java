@@ -51,7 +51,7 @@ public class ReachOverlayConfig {
     private float hudY = 0.85f;
     private float hudScale = 1.0f;
     private boolean bingSoundEnabled = true;
-    private float bingSoundThreshold = 2.75f; // 2.25 - 3.00
+    private float bingSoundThreshold = 2.25f; // 2.25 - 3.00
     private boolean hitLoggingEnabled = false; // default OFF for privacy
     private boolean hitTextEnabled = true; // crosshair hit distance text
 
