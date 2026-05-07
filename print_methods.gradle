@@ -1,0 +1,23 @@
+tasks.register('printMethods') {
+    doLast {
+        def compileClasspath = project.configurations.compileClasspath.files
+        def urls = compileClasspath.collect { it.toURI().toURL() } as java.net.URL[]
+        def loader = new java.net.URLClassLoader(urls, null)
+        
+        println "==== RenderTickCounter methods ===="
+        def clazz = Class.forName('net.minecraft.client.render.RenderTickCounter', false, loader)
+        clazz.declaredMethods.each { println it }
+        
+        println "==== DrawContext methods ===="
+        def dcClass = Class.forName('net.minecraft.client.gui.DrawContext', false, loader)
+        dcClass.declaredMethods.each { println it }
+
+        println "==== KeyBinding constructors ===="
+        def kbClass = Class.forName('net.minecraft.client.option.KeyBinding', false, loader)
+        kbClass.declaredConstructors.each { println it }
+        
+        println "==== ParentElement methods ===="
+        def peClass = Class.forName('net.minecraft.client.gui.ParentElement', false, loader)
+        peClass.declaredMethods.each { println it }
+    }
+}

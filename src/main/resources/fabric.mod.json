@@ -1,0 +1,44 @@
+{
+	"schemaVersion": 1,
+	"id": "iwanttohitfromthreeblocks",
+	"version": "${version}",
+	"name": "IWantToHitFromThreeBlocks",
+	"description": "A PVP mod that visualizes your attack reach with dynamic 3D block overlays and a color-changing crosshair, allowing you to practice better by adjusting tolerance based on your reaction time.",
+	"authors": [
+		"B_E_E"
+	],
+	"contact": {
+		"sources": "https://github.com/BEEandRandomNames/IWantToHitFromThreeBlocks"
+	},
+	"license": "MIT",
+	"icon": "assets/iwanttohitfromthreeblocks/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.pvpmod.client.PvpModClient"
+		],
+		"modmenu": [
+			"com.pvpmod.client.config.ModMenuIntegration"
+		]
+	},
+	"mixins": [
+		{
+			"config": "iwanttohitfromthreeblocks.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": ">=1.20",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
+	},
+	"custom": {
+		"modmenu": {
+			"descriptionTranslation": "iwanttohitfromthreeblocks.description"
+		}
+	}
+}

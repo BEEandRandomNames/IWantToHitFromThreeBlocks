@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "com.pvpmod.client.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"client": [
+		"InGameHudMixin",
+		"MinecraftClientMixin",
+		"WorldRendererMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

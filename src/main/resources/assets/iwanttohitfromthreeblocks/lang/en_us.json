@@ -1,0 +1,17 @@
+{
+  "category.iwanttohitfromthreeblocks": "PVP Reach Overlay",
+  "key.categories.iwanttohitfromthreeblocks.keybinds": "PVP Reach Overlay",
+  "key.iwanttohitfromthreeblocks.toggle": "Toggle Reach Overlay",
+  "key.iwanttohitfromthreeblocks.toggleCross": "Toggle Cross Color",
+  "key.iwanttohitfromthreeblocks.toggleStats": "Toggle Hit Distance HUD",
+  "key.iwanttohitfromthreeblocks.switch2D": "Switch to 2D Mode (↓)",
+  "key.iwanttohitfromthreeblocks.switch3D": "Switch to 3D Mode (↑)",
+  "iwanttohitfromthreeblocks.config.title": "PVP Reach Overlay Settings",
+  "iwanttohitfromthreeblocks.config.toleranceDesc": "§7Adjust based on your reaction speed.",
+  "iwanttohitfromthreeblocks.config.mode2D": "§fMode: §a2D §7(press ↑ to switch)",
+  "iwanttohitfromthreeblocks.config.mode3D": "§fMode: §b3D §7(press ↓ to switch)",
+  "iwanttohitfromthreeblocks.config.loggingOff": "§7Hit logging is §cdisabled§7.\n§7Enable it in settings to\n§7record your hit distances.",
+  "iwanttohitfromthreeblocks.description": "A PVP mod that visualizes your attack reach with dynamic 3D block overlays and a color-changing crosshair, allowing you to practice better by adjusting tolerance based on your reaction time.",
+  "iwanttohitfromthreeblocks.config.openLogs": "Click here to view your logs",
+  "iwanttohitfromthreeblocks.hud.block": "block"
+}

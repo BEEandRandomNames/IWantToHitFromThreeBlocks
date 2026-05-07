@@ -1,0 +1,17 @@
+{
+  "category.iwanttohitfromthreeblocks": "PVP Menzil Göstergesi",
+  "key.categories.iwanttohitfromthreeblocks.keybinds": "PVP Menzil Göstergesi",
+  "key.iwanttohitfromthreeblocks.toggle": "Menzil Göstergesini Aç/Kapat",
+  "key.iwanttohitfromthreeblocks.toggleCross": "Cross Renk Değişimini Aç/Kapat",
+  "key.iwanttohitfromthreeblocks.toggleStats": "Vuruş Mesafesi HUD Aç/Kapat",
+  "key.iwanttohitfromthreeblocks.switch2D": "2B Moda Geç (↓)",
+  "key.iwanttohitfromthreeblocks.switch3D": "3B Moda Geç (↑)",
+  "iwanttohitfromthreeblocks.config.title": "PVP Menzil Göstergesi Ayarları",
+  "iwanttohitfromthreeblocks.config.toleranceDesc": "§7Reaksiyon hızınıza göre ayarlayın.",
+  "iwanttohitfromthreeblocks.config.mode2D": "§fMod: §a2B §7(geçiş için ↑)",
+  "iwanttohitfromthreeblocks.config.mode3D": "§fMod: §b3B §7(geçiş için ↓)",
+  "iwanttohitfromthreeblocks.config.loggingOff": "§7Vuruş kaydı §ckapalı§7.\n§7Vuruş mesafelerinizi kaydetmek\n§7için ayarlardan etkinleştirin.",
+  "iwanttohitfromthreeblocks.description": "Dinamik 3B blok göstergeleri ve renk değiştiren crosshair ile saldırı menzilinizi görselleştiren, tepki sürenize göre tolerans ayarı yaparak daha iyi pratik yapmanızı amaçlayan bir PVP modudur.",
+  "iwanttohitfromthreeblocks.config.openLogs": "Loglarınızı görmek için buraya tıklayın",
+  "iwanttohitfromthreeblocks.hud.block": "blok"
+}
