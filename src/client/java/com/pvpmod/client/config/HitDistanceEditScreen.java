@@ -23,8 +23,6 @@ public class HitDistanceEditScreen extends Screen {
     private boolean resizing = false;
     private int dragOffsetX, dragOffsetY;
 
-    private static final int BASE_WIDTH = 110;
-    private static final int BASE_HEIGHT = 32;
     private static final int RESIZE_ZONE = 14;
     private static final int MARGIN = 4; // safe margin from screen edges
     private static final int CORNER_SIZE = 5; // visual corner handle size
@@ -53,7 +51,16 @@ public class HitDistanceEditScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
-        super.renderBackground(ctx, mx, my, delta);
+        if (this.client != null && this.client.world == null) {
+            // Draw dirt background if accessed from title screen
+            super.renderBackground(ctx, mx, my, delta);
+        } else {
+            // Draw a light darkening overlay so text is readable, but DO NOT blur the world
+            ctx.fill(0, 0, this.width, this.height, 0x44000000);
+        }
+
+        // Render widgets (Done button)
+        super.render(ctx, mx, my, delta);
 
         // ── Full-screen safe-area boundary (includes Done button area) ──
         int bColor = 0x66FFFFFF;
@@ -74,26 +81,43 @@ public class HitDistanceEditScreen extends Screen {
                 this.width / 2, MARGIN + 4, 0xFFFFFF);
 
         // ── HUD preview panel ─────────────────────────────────────
-        int panelW = (int)(BASE_WIDTH * hudScale);
-        int panelH = (int)(BASE_HEIGHT * hudScale);
+        int padX = 6, padY = 4, lineSpacing = 4;
+        int fontH = this.textRenderer.fontHeight;
+        int maxTextWidth = Math.max(this.textRenderer.getWidth("2.85 block"), this.textRenderer.getWidth("avg: 2.56 (42)"));
+        int basePanelW = maxTextWidth + padX * 2;
+        int basePanelH = padY * 2 + fontH * 2 + lineSpacing;
+        
+        int panelW = (int)(basePanelW * hudScale);
+        int panelH = (int)(basePanelH * hudScale);
 
-        // Background
-        ctx.fill(hudPixelX, hudPixelY,
-                hudPixelX + panelW, hudPixelY + panelH,
-                0x8C000000);
+        // Border color logic
+        int r = config.getOverlayRed();
+        int g = config.getOverlayGreen();
+        int b = config.getOverlayBlue();
+        int a = Math.max(150, config.getOverlayAlpha());
+        int idleColor = (a << 24) | (r << 16) | (g << 8) | b;
+        int borderColor = dragging ? 0xFFFFFF00 : (resizing ? 0xFFFF8800 : idleColor);
 
-        // Border (green)
-        int borderColor = dragging ? 0xFFFFFF00 : (resizing ? 0xFFFF8800 : 0xFF44FF44);
-        // Top border
-        ctx.fill(hudPixelX, hudPixelY, hudPixelX + panelW, hudPixelY + 1, borderColor);
-        // Bottom border
-        ctx.fill(hudPixelX, hudPixelY + panelH - 1, hudPixelX + panelW, hudPixelY + panelH, borderColor);
-        // Left border
-        ctx.fill(hudPixelX, hudPixelY + 1, hudPixelX + 1, hudPixelY + panelH - 1, borderColor);
-        // Right border
-        ctx.fill(hudPixelX + panelW - 1, hudPixelY + 1, hudPixelX + panelW, hudPixelY + panelH - 1, borderColor);
+        // Preview texts & background rendered exactly like HUD
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(hudPixelX, hudPixelY, 0);
+        ctx.getMatrices().scale(hudScale, hudScale, 1.0f);
 
-        // ── Pistachio green corner marks (1px thick, L-shaped) ─────
+        // Background + Border (unscaled dimensions inside scaled matrix)
+        ctx.fill(0, 0, basePanelW, basePanelH, 0x8C000000);
+        
+        // Manual border drawing
+        ctx.fill(0, 0, basePanelW, 1, borderColor);
+        ctx.fill(0, basePanelH - 1, basePanelW, basePanelH, borderColor);
+        ctx.fill(0, 1, 1, basePanelH - 1, borderColor);
+        ctx.fill(basePanelW - 1, 1, basePanelW, basePanelH - 1, borderColor);
+
+        ctx.drawTextWithShadow(this.textRenderer, "2.85 block", padX, padY, 0xFFFFFFFF);
+        ctx.drawTextWithShadow(this.textRenderer, "avg: 2.56 (42)", padX, padY + fontH + lineSpacing, 0xFFAAAAAA);
+
+        ctx.getMatrices().pop();
+
+        // ── Pistachio green corner marks (drawn outside scaled matrix so they are crisp) ─────
         int cColor = 0xCC93C572; // pistachio green
         int cl = 3; // corner line length
         int px0 = hudPixelX, py0 = hudPixelY;
@@ -110,27 +134,19 @@ public class HitDistanceEditScreen extends Screen {
         // Bottom-right
         ctx.fill(px1 - cl, py1 - 1, px1, py1, cColor);
         ctx.fill(px1 - 1, py1 - cl, px1, py1, cColor);
-
-        // Preview texts (2 lines)
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(hudPixelX + 6, hudPixelY + 4, 0);
-        ctx.getMatrices().scale(hudScale, hudScale, 1.0f);
-
-        int fontH = this.textRenderer.fontHeight;
-        int ls = 4;
-        ctx.drawTextWithShadow(this.textRenderer, "2.85 block", 0, 0, 0xFFFFFFFF);
-        ctx.drawTextWithShadow(this.textRenderer, "avg: 2.56 (42)", 0, fontH + ls, 0xFFAAAAAA);
-
-        ctx.getMatrices().pop();
-
-        super.render(ctx, mx, my, delta);
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (button == 0) {
-            int panelW = (int)(BASE_WIDTH * hudScale);
-            int panelH = (int)(BASE_HEIGHT * hudScale);
+            int padX = 6, padY = 4, lineSpacing = 4;
+            int fontH = this.client.textRenderer.fontHeight;
+            int maxTextWidth = Math.max(this.client.textRenderer.getWidth("2.85 block"), this.client.textRenderer.getWidth("avg: 2.56 (42)"));
+            int basePanelW = maxTextWidth + padX * 2;
+            int basePanelH = padY * 2 + fontH * 2 + lineSpacing;
+            
+            int panelW = (int)(basePanelW * hudScale);
+            int panelH = (int)(basePanelH * hudScale);
 
             // Resize zone (bottom-right corner)
             int rzX = hudPixelX + panelW - RESIZE_ZONE;
@@ -163,8 +179,12 @@ public class HitDistanceEditScreen extends Screen {
                 return true;
             }
             if (resizing) {
+                int padX = 6;
+                int maxTextWidth = Math.max(this.client.textRenderer.getWidth("2.85 block"), this.client.textRenderer.getWidth("avg: 2.56 (42)"));
+                int basePanelW = maxTextWidth + padX * 2;
+                
                 int newW = (int)(mx - hudPixelX);
-                float newScale = (float) newW / BASE_WIDTH;
+                float newScale = (float) newW / basePanelW;
                 hudScale = Math.max(0.5f, Math.min(3.0f, newScale));
                 clampToScreen();
                 return true;
@@ -187,8 +207,14 @@ public class HitDistanceEditScreen extends Screen {
      * HUD border touches but never overlaps the white boundary line.
      */
     private void clampToScreen() {
-        int panelW = (int)(BASE_WIDTH * hudScale);
-        int panelH = (int)(BASE_HEIGHT * hudScale);
+        int padX = 6, padY = 4, lineSpacing = 4;
+        int fontH = this.client.textRenderer.fontHeight;
+        int maxTextWidth = Math.max(this.client.textRenderer.getWidth("2.85 block"), this.client.textRenderer.getWidth("avg: 2.56 (42)"));
+        int basePanelW = maxTextWidth + padX * 2;
+        int basePanelH = padY * 2 + fontH * 2 + lineSpacing;
+        
+        int panelW = (int)(basePanelW * hudScale);
+        int panelH = (int)(basePanelH * hudScale);
 
         // Keep inside the white boundary (MARGIN+1 so borders don't overlap)
         int minX = MARGIN + 1;

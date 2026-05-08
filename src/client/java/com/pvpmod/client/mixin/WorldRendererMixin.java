@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
@@ -19,18 +20,23 @@ public class WorldRendererMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void onRender(
-            MatrixStack matrices,
-            float tickDelta,
-            long limitTime,
+            RenderTickCounter tickCounter,
             boolean renderBlockOutline,
             Camera camera,
             GameRenderer gameRenderer,
             LightmapTextureManager lightmapTextureManager,
+            Matrix4f positionMatrix,
             Matrix4f projectionMatrix,
             CallbackInfo ci) {
 
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
+
+        float tickDelta = tickCounter.getTickDelta(true);
+
+        // Create our own MatrixStack and apply the camera position matrix
+        MatrixStack matrices = new MatrixStack();
+        matrices.multiplyPositionMatrix(positionMatrix);
 
         // Get the immediate vertex consumer provider
         VertexConsumerProvider.Immediate consumers = client.getBufferBuilders().getEntityVertexConsumers();

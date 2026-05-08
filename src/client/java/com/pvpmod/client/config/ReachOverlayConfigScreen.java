@@ -242,8 +242,12 @@ public class ReachOverlayConfigScreen extends Screen {
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
         super.renderBackground(ctx, mx, my, delta);
+        
+        // Render widgets (buttons, sliders, etc.)
+        super.render(ctx, mx, my, delta);
 
         // Stats tab: show session statistics on the right side
+        // Drawn AFTER super.render() so it isn't affected by the 1.21 background blur
         if (activeTab == 2 && PvpModClient.getHitTracker() != null) {
             int sx = this.width / 2 + 115; // anchored to buttons' right edge
             int sy = 40;
@@ -323,7 +327,7 @@ public class ReachOverlayConfigScreen extends Screen {
             }
         }
 
-        // Tolerance description (before super.render so it sits behind widgets)
+        // Tolerance description
         if (activeTab == 0 || activeTab == 1) {
             ToleranceSlider ts = activeTab == 0 ? rTolerance : cTolerance;
             if (ts != null) {
@@ -332,8 +336,6 @@ public class ReachOverlayConfigScreen extends Screen {
                         this.width / 2, ts.getY() + 22, 0x888888);
             }
         }
-
-        super.render(ctx, mx, my, delta);
 
         // Color preview AFTER super.render() — drawn on top of everything
         // Uses opaque background so it's visible on both dirt (main menu) and in-game screens

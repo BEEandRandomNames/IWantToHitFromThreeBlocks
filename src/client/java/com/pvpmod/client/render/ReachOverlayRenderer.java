@@ -123,10 +123,10 @@ public class ReachOverlayRenderer {
 
         if (consumers != null) {
             VertexConsumer buf = consumers.getBuffer(RenderLayer.getDebugQuads());
-            buf.vertex(m, (float)x0, y, (float)z0).color(r, g, b, a).next();
-            buf.vertex(m, (float)x1, y, (float)z1).color(r, g, b, a).next();
-            buf.vertex(m, (float)x2, y, (float)z2).color(r, g, b, a).next();
-            buf.vertex(m, (float)x3, y, (float)z3).color(r, g, b, a).next();
+            buf.vertex(m, (float)x0, y, (float)z0).color(r, g, b, a);
+            buf.vertex(m, (float)x1, y, (float)z1).color(r, g, b, a);
+            buf.vertex(m, (float)x2, y, (float)z2).color(r, g, b, a);
+            buf.vertex(m, (float)x3, y, (float)z3).color(r, g, b, a);
         }
         mat.pop();
     }
@@ -143,17 +143,17 @@ public class ReachOverlayRenderer {
             VertexConsumer buf = consumers.getBuffer(RenderLayer.getLines());
             // GL_LINES requires pairs of vertices per line segment
             // Segment 1: x0->x1
-            buf.vertex(m, (float)x0, y, (float)z0).color(r, g, b, a).normal(0, 1, 0).next();
-            buf.vertex(m, (float)x1, y, (float)z1).color(r, g, b, a).normal(0, 1, 0).next();
+            buf.vertex(m, (float)x0, y, (float)z0).color(r, g, b, a).normal(0, 1, 0);
+            buf.vertex(m, (float)x1, y, (float)z1).color(r, g, b, a).normal(0, 1, 0);
             // Segment 2: x1->x2
-            buf.vertex(m, (float)x1, y, (float)z1).color(r, g, b, a).normal(0, 1, 0).next();
-            buf.vertex(m, (float)x2, y, (float)z2).color(r, g, b, a).normal(0, 1, 0).next();
+            buf.vertex(m, (float)x1, y, (float)z1).color(r, g, b, a).normal(0, 1, 0);
+            buf.vertex(m, (float)x2, y, (float)z2).color(r, g, b, a).normal(0, 1, 0);
             // Segment 3: x2->x3
-            buf.vertex(m, (float)x2, y, (float)z2).color(r, g, b, a).normal(0, 1, 0).next();
-            buf.vertex(m, (float)x3, y, (float)z3).color(r, g, b, a).normal(0, 1, 0).next();
+            buf.vertex(m, (float)x2, y, (float)z2).color(r, g, b, a).normal(0, 1, 0);
+            buf.vertex(m, (float)x3, y, (float)z3).color(r, g, b, a).normal(0, 1, 0);
             // Segment 4: x3->x0
-            buf.vertex(m, (float)x3, y, (float)z3).color(r, g, b, a).normal(0, 1, 0).next();
-            buf.vertex(m, (float)x0, y, (float)z0).color(r, g, b, a).normal(0, 1, 0).next();
+            buf.vertex(m, (float)x3, y, (float)z3).color(r, g, b, a).normal(0, 1, 0);
+            buf.vertex(m, (float)x0, y, (float)z0).color(r, g, b, a).normal(0, 1, 0);
         }
         mat.pop();
     }

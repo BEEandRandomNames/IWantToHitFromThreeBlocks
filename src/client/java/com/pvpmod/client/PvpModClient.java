@@ -92,8 +92,8 @@ public class PvpModClient implements ClientModInitializer {
         // World render events (2D and 3D reach overlays) are now handled via WorldRendererMixin
 
         // Register HUD render for hit distance display
-        HudRenderCallback.EVENT.register((ctx, tickDelta) -> {
-            hitHud.render(ctx, tickDelta);
+        HudRenderCallback.EVENT.register((ctx, tickCounter) -> {
+            hitHud.render(ctx, tickCounter.getTickDelta(true));
         });
 
         // Register attack entity callback for hit distance tracking

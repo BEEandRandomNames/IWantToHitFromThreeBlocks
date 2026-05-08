@@ -40,7 +40,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Mod Menu (optional — config screen integration)
-	modCompileOnly "com.terraformersmc:modmenu:7.2.2"
+	modCompileOnly "com.terraformersmc:modmenu:11.0.4"
 }
 
 processResources {
@@ -82,6 +82,41 @@ publishing {
 	}
 }
 
+tasks.register('inspect121') {
+    doLast {
+        def urls = (project.configurations.compileClasspath.files + project.sourceSets.client.compileClasspath.files).collect { it.toURI().toURL() } as java.net.URL[]
+        def loader = new java.net.URLClassLoader(urls, (ClassLoader) null)
+        try {
+            def c1 = Class.forName('net.minecraft.client.gui.hud.InGameHud', false, loader)
+            println '== InGameHud =='
+            c1.declaredMethods.findAll { it.name == 'renderCrosshair' }.each { println it }
+        } catch(Exception e) { e.printStackTrace() }
+        try {
+            def c2 = Class.forName('net.minecraft.client.gui.DrawContext', false, loader)
+            println '== DrawContext.drawGuiTexture =='
+            c2.declaredMethods.findAll { it.name.contains('drawGuiTexture') }.each { println it }
+        } catch(Exception e) { e.printStackTrace() }
+        try {
+            def c3 = Class.forName('net.minecraft.client.render.WorldRenderer', false, loader)
+            println '== WorldRenderer.render =='
+            c3.declaredMethods.findAll { it.name == 'render' }.each { println it }
+        } catch(Exception e) { e.printStackTrace() }
+        try {
+            def c4 = Class.forName('net.minecraft.client.render.RenderTickCounter', false, loader)
+            println '== RenderTickCounter =='
+            c4.declaredMethods.each { println it }
+            c4.declaredFields.each { println "  FIELD: ${it}" }
+            c4.interfaces.each { println "  IFACE: ${it}" }
+            println "  SUPER: ${c4.superclass}"
+        } catch(Exception e) { e.printStackTrace() }
+        try {
+            def c5 = Class.forName('net.minecraft.client.render.VertexConsumer', false, loader)
+            println '== VertexConsumer =='
+            c5.declaredMethods.each { println it }
+        } catch(Exception e) { e.printStackTrace() }
+    }
+}
+
 tasks.register('printMethods') {
     doLast {
         def loader = new java.net.URLClassLoader(project.configurations.compileClasspath.files.collect { it.toURI().toURL() } as java.net.URL[], (ClassLoader) null)
@@ -105,5 +140,17 @@ tasks.register('printMethods') {
             println "== Screen =="
             kb.declaredMethods.findAll { it.name.contains('mouse') }.each { println it }
         } catch (Exception e) { e.printStackTrace() }
+    }
+}
+
+tasks.register('inspectScreen') {
+    doLast {
+        def urls = (project.configurations.compileClasspath.files + project.sourceSets.client.compileClasspath.files).collect { it.toURI().toURL() } as java.net.URL[]
+        def loader = new java.net.URLClassLoader(urls, (ClassLoader) null)
+        try {
+            def c = Class.forName('net.minecraft.client.gui.widget.ClickableWidget', false, loader)
+            println '== ClickableWidget =='
+            c.declaredMethods.findAll { it.name.contains('render') }.each { println it }
+        } catch(Exception e) { e.printStackTrace() }
     }
 }

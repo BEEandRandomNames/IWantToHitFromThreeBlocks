@@ -9,6 +9,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.util.Identifier;
@@ -39,7 +40,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class InGameHudMixin {
 
     // 1.20.2+ uses GUI sprite atlas instead of icons.png
-    private static final Identifier CROSSHAIR_TEXTURE = new Identifier("hud/crosshair");
+    private static final Identifier CROSSHAIR_TEXTURE = Identifier.of("hud/crosshair");
 
     // ── Crosshair hit distance text state ──────────────────────────
     private static long pvpro$lastRenderedHitTime = 0;
@@ -55,7 +56,7 @@ public class InGameHudMixin {
      * Also renders the hit distance text above the crosshair.
      */
     @Inject(method = "renderCrosshair", at = @At("RETURN"))
-    private void pvpReachOverlay$afterCrosshair(DrawContext context, CallbackInfo ci) {
+    private void pvpReachOverlay$afterCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 
         MinecraftClient client = MinecraftClient.getInstance();
         int scaledWidth = client.getWindow().getScaledWidth();

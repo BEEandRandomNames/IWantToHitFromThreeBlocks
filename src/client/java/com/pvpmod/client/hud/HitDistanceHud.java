@@ -61,20 +61,26 @@ public class HitDistanceHud {
 
         int padX = 6, padY = 4;
         int lineSpacing = 4;
-        int panelX = -padX;
-        int panelY = -padY;
         int panelW = maxTextWidth + padX * 2;
         int panelH = padY * 2 + textHeight * 2 + lineSpacing;
 
-        // Background + border
-        ctx.fill(panelX, panelY, panelX + panelW, panelY + panelH, 0x8C000000);
-        this.drawBorder(ctx, panelX, panelY, panelW, panelH, 0xCC44FF44);
+        // Use Reach overlay color for the border
+        int r = config.getOverlayRed();
+        int g = config.getOverlayGreen();
+        int b = config.getOverlayBlue();
+        // Use a slightly higher alpha for visibility, or max of current alpha and 150
+        int a = Math.max(150, config.getOverlayAlpha());
+        int borderColor = (a << 24) | (r << 16) | (g << 8) | b;
+
+        // Background + border (origin is 0,0 now)
+        ctx.fill(0, 0, panelW, panelH, 0x8C000000);
+        this.drawBorder(ctx, 0, 0, panelW, panelH, borderColor);
 
         // Line 1: distance (white)
-        ctx.drawTextWithShadow(textRenderer, displayText, 0, 0, 0xFFFFFFFF);
+        ctx.drawTextWithShadow(textRenderer, displayText, padX, padY, 0xFFFFFFFF);
 
         // Line 2: avg (gray)
-        ctx.drawTextWithShadow(textRenderer, avgText, 0, textHeight + lineSpacing, 0xFFAAAAAA);
+        ctx.drawTextWithShadow(textRenderer, avgText, padX, padY + textHeight + lineSpacing, 0xFFAAAAAA);
 
         ctx.getMatrices().pop();
     }
