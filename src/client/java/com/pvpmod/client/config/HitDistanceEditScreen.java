@@ -20,7 +20,7 @@ public class HitDistanceEditScreen extends Screen {
     private float hudScale;
 
     private boolean dragging = false;
-    private boolean resizing = false;
+    private int resizeCorner = 0; // 0=None, 1=TL, 2=TR, 3=BL, 4=BR
     private int dragOffsetX, dragOffsetY;
 
     private static final int RESIZE_ZONE = 14;
@@ -90,13 +90,13 @@ public class HitDistanceEditScreen extends Screen {
         int panelW = (int)(basePanelW * hudScale);
         int panelH = (int)(basePanelH * hudScale);
 
-        // Border color logic
+        // Border (green)
         int r = config.getOverlayRed();
         int g = config.getOverlayGreen();
         int b = config.getOverlayBlue();
         int a = Math.max(150, config.getOverlayAlpha());
         int idleColor = (a << 24) | (r << 16) | (g << 8) | b;
-        int borderColor = dragging ? 0xFFFFFF00 : (resizing ? 0xFFFF8800 : idleColor);
+        int borderColor = dragging ? 0xFFFFFF00 : (resizeCorner > 0 ? 0xFFFF8800 : idleColor);
 
         // Preview texts & background rendered exactly like HUD
         ctx.getMatrices().push();
@@ -148,13 +148,21 @@ public class HitDistanceEditScreen extends Screen {
             int panelW = (int)(basePanelW * hudScale);
             int panelH = (int)(basePanelH * hudScale);
 
-            // Resize zone (bottom-right corner)
-            int rzX = hudPixelX + panelW - RESIZE_ZONE;
-            int rzY = hudPixelY + panelH - RESIZE_ZONE;
-            if (mx >= rzX && mx <= hudPixelX + panelW
-                    && my >= rzY && my <= hudPixelY + panelH) {
-                resizing = true;
-                return true;
+            // TL corner
+            if (mx >= hudPixelX && mx <= hudPixelX + RESIZE_ZONE && my >= hudPixelY && my <= hudPixelY + RESIZE_ZONE) {
+                resizeCorner = 1; return true;
+            }
+            // TR corner
+            if (mx >= hudPixelX + panelW - RESIZE_ZONE && mx <= hudPixelX + panelW && my >= hudPixelY && my <= hudPixelY + RESIZE_ZONE) {
+                resizeCorner = 2; return true;
+            }
+            // BL corner
+            if (mx >= hudPixelX && mx <= hudPixelX + RESIZE_ZONE && my >= hudPixelY + panelH - RESIZE_ZONE && my <= hudPixelY + panelH) {
+                resizeCorner = 3; return true;
+            }
+            // BR corner
+            if (mx >= hudPixelX + panelW - RESIZE_ZONE && mx <= hudPixelX + panelW && my >= hudPixelY + panelH - RESIZE_ZONE && my <= hudPixelY + panelH) {
+                resizeCorner = 4; return true;
             }
 
             // Drag zone (entire panel)
@@ -178,14 +186,52 @@ public class HitDistanceEditScreen extends Screen {
                 clampToScreen();
                 return true;
             }
-            if (resizing) {
-                int padX = 6;
+            if (resizeCorner > 0) {
+                int padX = 6, padY = 4, lineSpacing = 4;
+                int fontH = this.client.textRenderer.fontHeight;
                 int maxTextWidth = Math.max(this.client.textRenderer.getWidth("2.85 block"), this.client.textRenderer.getWidth("avg: 2.56 (42)"));
                 int basePanelW = maxTextWidth + padX * 2;
+                int basePanelH = padY * 2 + fontH * 2 + lineSpacing;
                 
-                int newW = (int)(mx - hudPixelX);
-                float newScale = (float) newW / basePanelW;
+                float oldScale = hudScale;
+                float newScale = oldScale;
+                
+                int fixedX = 0, fixedY = 0;
+                
+                if (resizeCorner == 1) { // TL
+                    fixedX = hudPixelX + (int)(basePanelW * oldScale);
+                    fixedY = hudPixelY + (int)(basePanelH * oldScale);
+                    newScale = (float)(fixedX - mx) / basePanelW;
+                } else if (resizeCorner == 2) { // TR
+                    fixedX = hudPixelX;
+                    fixedY = hudPixelY + (int)(basePanelH * oldScale);
+                    newScale = (float)(mx - fixedX) / basePanelW;
+                } else if (resizeCorner == 3) { // BL
+                    fixedX = hudPixelX + (int)(basePanelW * oldScale);
+                    fixedY = hudPixelY;
+                    newScale = (float)(fixedX - mx) / basePanelW;
+                } else if (resizeCorner == 4) { // BR
+                    fixedX = hudPixelX;
+                    fixedY = hudPixelY;
+                    newScale = (float)(mx - fixedX) / basePanelW;
+                }
+                
                 hudScale = Math.max(0.5f, Math.min(3.0f, newScale));
+                
+                if (resizeCorner == 1) {
+                    hudPixelX = fixedX - (int)(basePanelW * hudScale);
+                    hudPixelY = fixedY - (int)(basePanelH * hudScale);
+                } else if (resizeCorner == 2) {
+                    hudPixelX = fixedX;
+                    hudPixelY = fixedY - (int)(basePanelH * hudScale);
+                } else if (resizeCorner == 3) {
+                    hudPixelX = fixedX - (int)(basePanelW * hudScale);
+                    hudPixelY = fixedY;
+                } else if (resizeCorner == 4) {
+                    hudPixelX = fixedX;
+                    hudPixelY = fixedY;
+                }
+                
                 clampToScreen();
                 return true;
             }
@@ -197,7 +243,7 @@ public class HitDistanceEditScreen extends Screen {
     public boolean mouseReleased(double mx, double my, int button) {
         if (button == 0) {
             dragging = false;
-            resizing = false;
+            resizeCorner = 0;
         }
         return super.mouseReleased(mx, my, button);
     }

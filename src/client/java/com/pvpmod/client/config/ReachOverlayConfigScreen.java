@@ -350,9 +350,18 @@ public class ReachOverlayConfigScreen extends Screen {
                 int r = (int) sr.getVal(), g = (int) sg.getVal();
                 int b = (int) sb.getVal(), a = (int) sa.getVal();
 
-                // Opaque black background so preview is visible on dirt texture too
-                ctx.fill(pvX, pvY, pvX + pvS, pvY + pvS, 0xFF000000);
-                // Preview color on top (with alpha blending visible against black)
+                // Checkerboard background so transparency is clearly visible
+                for (int cy = 0; cy < pvS; cy += 10) {
+                    for (int cx = 0; cx < pvS; cx += 10) {
+                        boolean isGray = ((cx / 10) + (cy / 10)) % 2 == 0;
+                        int cbCol = isGray ? 0xFF555555 : 0xFF222222;
+                        int endX = Math.min(pvX + cx + 10, pvX + pvS);
+                        int endY = Math.min(pvY + cy + 10, pvY + pvS);
+                        ctx.fill(pvX + cx, pvY + cy, endX, endY, cbCol);
+                    }
+                }
+                
+                // Preview color on top
                 int col = (a << 24) | (r << 16) | (g << 8) | b;
                 ctx.fill(pvX, pvY, pvX + pvS, pvY + pvS, col);
                 // White border
