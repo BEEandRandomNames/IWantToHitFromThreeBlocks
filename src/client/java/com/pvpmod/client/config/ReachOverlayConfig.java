@@ -50,6 +50,8 @@ public class ReachOverlayConfig {
     private float hudX = 0.05f;       // screen percentage (0.0 - 1.0)
     private float hudY = 0.85f;
     private float hudScale = 1.0f;
+    private int hudBgAlpha = 140;      // Background opacity (0-255)
+    private boolean hudBorderEnabled = true; // Toggle outer border
     private boolean bingSoundEnabled = true;
     private float bingSoundThreshold = 2.25f; // 2.25 - 3.00
     private boolean hitLoggingEnabled = false; // default OFF for privacy
@@ -115,6 +117,12 @@ public class ReachOverlayConfig {
 
     public float getHudScale() { return hudScale; }
     public void setHudScale(float v) { this.hudScale = Math.max(0.5f, Math.min(3.0f, v)); }
+
+    public int getHudBgAlpha() { return hudBgAlpha; }
+    public void setHudBgAlpha(int v) { this.hudBgAlpha = clamp(v, 0, 255); }
+
+    public boolean isHudBorderEnabled() { return hudBorderEnabled; }
+    public void setHudBorderEnabled(boolean v) { this.hudBorderEnabled = v; }
 
     public boolean isBingSoundEnabled() { return bingSoundEnabled; }
     public void setBingSoundEnabled(boolean v) { this.bingSoundEnabled = v; }

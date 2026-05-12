@@ -82,8 +82,15 @@ public class HitDistanceTracker {
             logger.logHit(distance, targetName); // write to CSV file
         }
 
+        // Damage immunity check (red silhouette)
+        boolean isImmune = target instanceof LivingEntity living && living.hurtTime > 0;
+
         // Combo + bing sound logic
-        if (config.isBingSoundEnabled() && distance >= config.getBingSoundThreshold()) {
+        if (isImmune) {
+            // Hit during damage immunity: reset combo and skip sound
+            comboStreak = 0;
+            comboTarget = null;
+        } else if (config.isBingSoundEnabled() && distance >= config.getBingSoundThreshold()) {
             // If switching targets mid-combo, reset
             if (comboTarget != null && comboTarget != target) {
                 comboStreak = 0;

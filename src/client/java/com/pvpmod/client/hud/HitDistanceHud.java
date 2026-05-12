@@ -72,9 +72,14 @@ public class HitDistanceHud {
         int a = Math.max(150, config.getOverlayAlpha());
         int borderColor = (a << 24) | (r << 16) | (g << 8) | b;
 
-        // Background + border (origin is 0,0 now)
-        ctx.fill(0, 0, panelW, panelH, 0x8C000000);
-        this.drawBorder(ctx, 0, 0, panelW, panelH, borderColor);
+        // Render HUD background
+        int bgAlpha = config.getHudBgAlpha();
+        ctx.fill(0, 0, panelW, panelH, (bgAlpha << 24) | 0x000000);
+        
+        // Render HUD border if enabled
+        if (config.isHudBorderEnabled()) {
+            this.drawBorder(ctx, 0, 0, panelW, panelH, borderColor);
+        }
 
         // Line 1: distance (white)
         ctx.drawTextWithShadow(textRenderer, displayText, padX, padY, 0xFFFFFFFF);

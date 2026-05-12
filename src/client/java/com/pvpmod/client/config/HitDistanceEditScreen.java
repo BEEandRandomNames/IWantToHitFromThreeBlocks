@@ -5,6 +5,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 /**
  * Screen for positioning and resizing the Hit Distance HUD element.
@@ -12,6 +13,8 @@ import net.minecraft.text.Text;
  * Pistachio green corner handles indicate resize zones.
  */
 public class HitDistanceEditScreen extends Screen {
+
+    private static final Identifier DIRT_TEXTURE = Identifier.of("minecraft", "textures/gui/menu_background.png");
 
     private final Screen parent;
     private final ReachOverlayConfig config;
@@ -22,6 +25,15 @@ public class HitDistanceEditScreen extends Screen {
     private boolean dragging = false;
     private int resizeCorner = 0; // 0=None, 1=TL, 2=TR, 3=BL, 4=BR
     private int dragOffsetX, dragOffsetY;
+
+    // Context Menu widgets
+    private boolean contextMenuOpen = false;
+    private ButtonWidget borderToggleButton;
+    private AlphaSlider alphaSlider;
+
+    private static final int MENU_W = 140;
+    private static final int MENU_H = 50;
+
 
     private static final int RESIZE_ZONE = 14;
     private static final int MARGIN = 4; // safe margin from screen edges
@@ -36,6 +48,9 @@ public class HitDistanceEditScreen extends Screen {
 
     @Override
     protected void init() {
+        // Close context menu on screen resize (e.g. F11 fullscreen toggle)
+        contextMenuOpen = false;
+
         hudPixelX = (int)(config.getHudX() * this.width);
         hudPixelY = (int)(config.getHudY() * this.height);
         clampToScreen();
@@ -43,39 +58,72 @@ public class HitDistanceEditScreen extends Screen {
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), btn -> {
             config.setHudX((float) hudPixelX / this.width);
             config.setHudY((float) hudPixelY / this.height);
-            config.setHudScale(hudScale);
-            config.save();
             this.client.setScreen(parent);
         }).dimensions(this.width / 2 - 50, this.height - 30, 100, 20).build());
+
+        // Context Menu Widgets
+        alphaSlider = new AlphaSlider(0, 0, 120, 20, Text.literal("Opacity"), config.getHudBgAlpha() / 255.0);
+        alphaSlider.visible = false;
+        alphaSlider.active = false;
+        addDrawableChild(alphaSlider);
+
+        borderToggleButton = ButtonWidget.builder(
+                Text.literal("Border: " + (config.isHudBorderEnabled() ? "ON" : "OFF")),
+                btn -> {
+                    config.setHudBorderEnabled(!config.isHudBorderEnabled());
+                    btn.setMessage(Text.literal("Border: " + (config.isHudBorderEnabled() ? "ON" : "OFF")));
+                }
+        ).dimensions(0, 0, 120, 20).build();
+        borderToggleButton.visible = false;
+        borderToggleButton.active = false;
+        addDrawableChild(borderToggleButton);
+        
+        // Restore context menu if it was open (e.g. after window resize)
+        if (contextMenuOpen) {
+            // Put it somewhere default if resized, since we didn't save coords
+            alphaSlider.visible = true;
+            alphaSlider.active = true;
+            borderToggleButton.visible = true;
+            borderToggleButton.active = true;
+        }
+    }
+
+    @Override
+    public void close() {
+        config.setHudScale(hudScale);
+        config.save();
+        super.close();
+    }
+
+    // Override to prevent 1.21 blur effect
+    @Override
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        if (this.client != null && this.client.world != null) {
+            // In-game: dark overlay only, NO blur
+            context.fill(0, 0, this.width, this.height, 0x44000000);
+        } else {
+            super.renderBackground(context, mouseX, mouseY, delta);
+        }
     }
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
-        if (this.client != null && this.client.world == null) {
-            // Draw dirt background if accessed from title screen
-            super.renderBackground(ctx, mx, my, delta);
-        } else {
-            // Draw a light darkening overlay so text is readable, but DO NOT blur the world
-            ctx.fill(0, 0, this.width, this.height, 0x44000000);
-        }
+        // renderBackground is called by super.render() via our override
+        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+        com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
 
-        // Render widgets (Done button)
+        // Render widgets (Done button + context menu widgets)
         super.render(ctx, mx, my, delta);
 
-        // ── Full-screen safe-area boundary (includes Done button area) ──
+        // ── Full-screen safe-area boundary ──
         int bColor = 0x66FFFFFF;
         int bx0 = MARGIN, by0 = MARGIN;
         int bx1 = this.width - MARGIN, by1 = this.height - MARGIN;
-        // Top
         ctx.fill(bx0, by0, bx1, by0 + 1, bColor);
-        // Bottom
         ctx.fill(bx0, by1 - 1, bx1, by1, bColor);
-        // Left
         ctx.fill(bx0, by0, bx0 + 1, by1, bColor);
-        // Right
         ctx.fill(bx1 - 1, by0, bx1, by1, bColor);
 
-        // Instructions
         ctx.drawCenteredTextWithShadow(this.textRenderer,
                 Text.literal("§eDrag to move, corner to resize"),
                 this.width / 2, MARGIN + 4, 0xFFFFFF);
@@ -86,11 +134,9 @@ public class HitDistanceEditScreen extends Screen {
         int maxTextWidth = Math.max(this.textRenderer.getWidth("2.85 block"), this.textRenderer.getWidth("avg: 2.56 (42)"));
         int basePanelW = maxTextWidth + padX * 2;
         int basePanelH = padY * 2 + fontH * 2 + lineSpacing;
-        
         int panelW = (int)(basePanelW * hudScale);
         int panelH = (int)(basePanelH * hudScale);
 
-        // Border (green)
         int r = config.getOverlayRed();
         int g = config.getOverlayGreen();
         int b = config.getOverlayBlue();
@@ -98,46 +144,117 @@ public class HitDistanceEditScreen extends Screen {
         int idleColor = (a << 24) | (r << 16) | (g << 8) | b;
         int borderColor = dragging ? 0xFFFFFF00 : (resizeCorner > 0 ? 0xFFFF8800 : idleColor);
 
-        // Preview texts & background rendered exactly like HUD
         ctx.getMatrices().push();
         ctx.getMatrices().translate(hudPixelX, hudPixelY, 0);
         ctx.getMatrices().scale(hudScale, hudScale, 1.0f);
 
-        // Background + Border (unscaled dimensions inside scaled matrix)
-        ctx.fill(0, 0, basePanelW, basePanelH, 0x8C000000);
-        
-        // Manual border drawing
-        ctx.fill(0, 0, basePanelW, 1, borderColor);
-        ctx.fill(0, basePanelH - 1, basePanelW, basePanelH, borderColor);
-        ctx.fill(0, 1, 1, basePanelH - 1, borderColor);
-        ctx.fill(basePanelW - 1, 1, basePanelW, basePanelH - 1, borderColor);
+        int bgAlpha = config.getHudBgAlpha();
+        ctx.fill(0, 0, basePanelW, basePanelH, (bgAlpha << 24) | 0x000000);
+        if (config.isHudBorderEnabled()) {
+            ctx.fill(0, 0, basePanelW, 1, borderColor);
+            ctx.fill(0, basePanelH - 1, basePanelW, basePanelH, borderColor);
+            ctx.fill(0, 1, 1, basePanelH - 1, borderColor);
+            ctx.fill(basePanelW - 1, 1, basePanelW, basePanelH - 1, borderColor);
+        }
 
         ctx.drawTextWithShadow(this.textRenderer, "2.85 block", padX, padY, 0xFFFFFFFF);
         ctx.drawTextWithShadow(this.textRenderer, "avg: 2.56 (42)", padX, padY + fontH + lineSpacing, 0xFFAAAAAA);
-
         ctx.getMatrices().pop();
 
-        // ── Pistachio green corner marks (drawn outside scaled matrix so they are crisp) ─────
-        int cColor = 0xCC93C572; // pistachio green
-        int cl = 3; // corner line length
+        // ── Corner marks ─────
+        int cColor = 0xCC93C572;
+        int cl = 3;
         int px0 = hudPixelX, py0 = hudPixelY;
         int px1 = hudPixelX + panelW, py1 = hudPixelY + panelH;
-        // Top-left
         ctx.fill(px0, py0, px0 + cl, py0 + 1, cColor);
         ctx.fill(px0, py0, px0 + 1, py0 + cl, cColor);
-        // Top-right
         ctx.fill(px1 - cl, py0, px1, py0 + 1, cColor);
         ctx.fill(px1 - 1, py0, px1, py0 + cl, cColor);
-        // Bottom-left
         ctx.fill(px0, py1 - 1, px0 + cl, py1, cColor);
         ctx.fill(px0, py1 - cl, px0 + 1, py1, cColor);
-        // Bottom-right
         ctx.fill(px1 - cl, py1 - 1, px1, py1, cColor);
         ctx.fill(px1 - 1, py1 - cl, px1, py1, cColor);
+
+        // ── Context Menu ON TOP of everything (z-pushed to front) ──
+        if (contextMenuOpen) {
+            int cmx = alphaSlider.getX() - 10;
+            int cmy = alphaSlider.getY() - 10;
+            int cmw = MENU_W;
+            int cmh = MENU_H + 20;
+
+            // Push z-level so menu renders above all HUD text
+            ctx.getMatrices().push();
+            ctx.getMatrices().translate(0, 0, 200);
+
+            // Dirt texture background (tiled)
+            ctx.drawTexture(DIRT_TEXTURE, cmx, cmy, 0, 0, cmw, cmh, 32, 32);
+            // Dark tint to match Minecraft loading screen look
+            ctx.fill(cmx, cmy, cmx + cmw, cmy + cmh, 0xC0101010);
+
+            // Simple white border
+            ctx.fill(cmx, cmy, cmx + cmw, cmy + 1, 0xFFFFFFFF);
+            ctx.fill(cmx, cmy + cmh - 1, cmx + cmw, cmy + cmh, 0xFFFFFFFF);
+            ctx.fill(cmx, cmy, cmx + 1, cmy + cmh, 0xFFFFFFFF);
+            ctx.fill(cmx + cmw - 1, cmy, cmx + cmw, cmy + cmh, 0xFFFFFFFF);
+
+            // Re-render context menu widgets ON TOP
+            alphaSlider.render(ctx, mx, my, delta);
+            borderToggleButton.render(ctx, mx, my, delta);
+
+            ctx.getMatrices().pop();
+        }
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        // If menu is open and we left-click outside it, close it
+        if (contextMenuOpen && button == 0) {
+            int cx = alphaSlider.getX() - 10;
+            int cy = alphaSlider.getY() - 10;
+            if (!(mx >= cx && mx <= cx + MENU_W && my >= cy && my <= cy + MENU_H + 20)) {
+                contextMenuOpen = false;
+                alphaSlider.visible = false;
+                alphaSlider.active = false;
+                borderToggleButton.visible = false;
+                borderToggleButton.active = false;
+            }
+        }
+
+        if (button == 1) { // Right click
+            int padX = 6, padY = 4, lineSpacing = 4;
+            int fontH = this.client.textRenderer.fontHeight;
+            int maxTextWidth = Math.max(this.client.textRenderer.getWidth("2.85 block"), this.client.textRenderer.getWidth("avg: 2.56 (42)"));
+            int basePanelW = maxTextWidth + padX * 2;
+            int basePanelH = padY * 2 + fontH * 2 + lineSpacing;
+            int panelW = (int)(basePanelW * hudScale);
+            int panelH = (int)(basePanelH * hudScale);
+
+            if (mx >= hudPixelX && mx <= hudPixelX + panelW && my >= hudPixelY && my <= hudPixelY + panelH) {
+                contextMenuOpen = true;
+                int totalMenuH = MENU_H + 20;
+                int menuX = (int)mx;
+                int menuY = (int)my;
+                
+                // Clamp menu to screen (all 4 edges)
+                if (menuX + MENU_W > this.width - MARGIN) menuX = this.width - MARGIN - MENU_W;
+                if (menuY + totalMenuH > this.height - MARGIN) menuY = this.height - MARGIN - totalMenuH;
+                if (menuX < MARGIN) menuX = MARGIN;
+                if (menuY < MARGIN) menuY = MARGIN;
+
+                alphaSlider.setX(menuX + 10);
+                alphaSlider.setY(menuY + 10);
+                alphaSlider.visible = true;
+                alphaSlider.active = true;
+
+                borderToggleButton.setX(menuX + 10);
+                borderToggleButton.setY(menuY + 35);
+                borderToggleButton.visible = true;
+                borderToggleButton.active = true;
+                
+                return true;
+            }
+        }
+
         if (button == 0) {
             int padX = 6, padY = 4, lineSpacing = 4;
             int fontH = this.client.textRenderer.fontHeight;
@@ -270,5 +387,22 @@ public class HitDistanceEditScreen extends Screen {
 
         hudPixelX = Math.max(minX, Math.min(maxX, hudPixelX));
         hudPixelY = Math.max(minY, Math.min(maxY, hudPixelY));
+    }
+
+    private class AlphaSlider extends net.minecraft.client.gui.widget.SliderWidget {
+        public AlphaSlider(int x, int y, int width, int height, Text text, double value) {
+            super(x, y, width, height, text, value);
+            this.updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            this.setMessage(Text.literal("Opacity: " + (int)(this.value * 255)));
+        }
+
+        @Override
+        protected void applyValue() {
+            config.setHudBgAlpha((int)(this.value * 255));
+        }
     }
 }
