@@ -5,7 +5,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 /**
  * Screen for positioning and resizing the Hit Distance HUD element.
@@ -13,8 +12,6 @@ import net.minecraft.util.Identifier;
  * Pistachio green corner handles indicate resize zones.
  */
 public class HitDistanceEditScreen extends Screen {
-
-    private static final Identifier DIRT_TEXTURE = Identifier.of("minecraft", "textures/gui/menu_background.png");
 
     private final Screen parent;
     private final ReachOverlayConfig config;
@@ -95,14 +92,15 @@ public class HitDistanceEditScreen extends Screen {
         super.close();
     }
 
-    // Override to prevent 1.21 blur effect
+    // Override to prevent 1.21 blur and fix F11 black screen from main menu
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
         if (this.client != null && this.client.world != null) {
             // In-game: dark overlay only, NO blur
             context.fill(0, 0, this.width, this.height, 0x44000000);
         } else {
-            super.renderBackground(context, mouseX, mouseY, delta);
+            // From title screen: dark solid background (reliable across F11 toggle)
+            context.fill(0, 0, this.width, this.height, 0xFF2D2D2D);
         }
     }
 
@@ -186,10 +184,8 @@ public class HitDistanceEditScreen extends Screen {
             ctx.getMatrices().push();
             ctx.getMatrices().translate(0, 0, 200);
 
-            // Dirt texture background (tiled)
-            ctx.drawTexture(DIRT_TEXTURE, cmx, cmy, 0, 0, cmw, cmh, 32, 32);
-            // Dark tint to match Minecraft loading screen look
-            ctx.fill(cmx, cmy, cmx + cmw, cmy + cmh, 0xC0101010);
+            // Dark solid background
+            ctx.fill(cmx, cmy, cmx + cmw, cmy + cmh, 0xFF1A1A1A);
 
             // Simple white border
             ctx.fill(cmx, cmy, cmx + cmw, cmy + 1, 0xFFFFFFFF);

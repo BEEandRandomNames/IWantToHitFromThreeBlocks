@@ -239,15 +239,7 @@ try:
         replace_all=True
     )
 
-    # 9. HitDistanceEditScreen: Identifier.of -> new Identifier AND texture path change for 1.20.x
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
-        'Identifier.of("minecraft", "textures/gui/menu_background.png")',
-        'new Identifier("minecraft", "textures/gui/options_background.png")',
-        "HitDistanceEditScreen Identifier + texture path"
-    )
-
-    # 10. HitDistanceEditScreen: drawTexture int u,v is compatible across all versions - no patch needed
+    # 9-10. HitDistanceEditScreen: No dirt texture patches needed (removed in favor of solid dark bg)
 
     # ================================================================
     # 1.20.2 BUILD
@@ -339,12 +331,6 @@ try:
         "public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {",
         "public void renderBackground(DrawContext context) {",
         "1.20.1 HitDistanceEditScreen renderBackground override sig"
-    )
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
-        "super.renderBackground(context, mouseX, mouseY, delta);",
-        "super.renderBackground(context);",
-        "1.20.1 HitDistanceEditScreen renderBackground super call"
     )
     replace_exact(
         "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
