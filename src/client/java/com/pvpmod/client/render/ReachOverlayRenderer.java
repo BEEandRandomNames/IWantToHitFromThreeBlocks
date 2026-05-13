@@ -161,6 +161,6 @@ public class ReachOverlayRenderer {
     private static double lerp(double a, double b, float t) { return a + (b - a) * t; }
 
     private double getAttackReach(PlayerEntity player) {
-        return player.isCreative() ? 5.0 : 3.0;
+        return player.getEntityInteractionRange();
     }
 }

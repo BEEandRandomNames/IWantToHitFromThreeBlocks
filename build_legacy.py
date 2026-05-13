@@ -88,6 +88,146 @@ for src, bak in BACKUP_FILES:
 
 try:
     # ================================================================
+    # 1.21.2 BUILD (closest to 1.21.1 base, built first)
+    # ================================================================
+    print("\n--- Applying 1.21.2-specific patches ---")
+
+    # 1.21.2: drawTexture now requires RenderLayer::getGuiTextured + float u,v
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
+        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
+        "1.21.2 UpdateNotificationScreen drawTexture RenderLayer"
+    )
+
+    # 1.21.2: setShaderColor no longer tints drawGuiTexture with RenderLayer pipeline
+    # Replace entire crosshair rendering block to use drawGuiTexture's color parameter
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        """                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.setShaderColor(r, g, b, a);
+                    context.drawGuiTexture(CROSSHAIR_TEXTURE, cx, cy, 15, 15);
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);""",
+        """                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    int crossColor = ((int)(a * 255) << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+                    context.drawGuiTexture(RenderLayer::getGuiTextured, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);""",
+        "1.21.2 InGameHudMixin crosshair color param"
+    )
+
+    # 1.21.2: WorldRenderer.render() gains ObjectAllocator as first parameter
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            LightmapTextureManager lightmapTextureManager,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            net.minecraft.client.util.ObjectAllocator allocator,
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            LightmapTextureManager lightmapTextureManager,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        "1.21.2 WorldRendererMixin ObjectAllocator param"
+    )
+
+    try:
+        build_version("1.21.2", "1.21.2+build.1", "0.106.1+1.21.2",
+                       "IWantToHitFromThreeBlocks-v1.0.0-1.21.2+1.21.3.jar")
+    except subprocess.CalledProcessError:
+        print("!! 1.21.2 build FAILED!")
+
+    # Restore all files back to 1.21.1 state before 1.21.4 patches
+    print("\n--- Restoring files for 1.21.4 build ---")
+    for src, bak in BACKUP_FILES:
+        shutil.copy(bak, src)
+
+    # ================================================================
+    # 1.21.4 BUILD
+    # Same as 1.21.2 patches + WorldRenderer loses LightmapTextureManager
+    # ================================================================
+    print("\n--- Applying 1.21.4-specific patches ---")
+
+    # 1.21.4: drawTexture requires RenderLayer (same as 1.21.2)
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
+        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
+        "1.21.4 UpdateNotificationScreen drawTexture RenderLayer"
+    )
+
+    # 1.21.4: crosshair color via drawGuiTexture color param (same as 1.21.2)
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        """                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.setShaderColor(r, g, b, a);
+                    context.drawGuiTexture(CROSSHAIR_TEXTURE, cx, cy, 15, 15);
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);""",
+        """                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    int crossColor = ((int)(a * 255) << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+                    context.drawGuiTexture(RenderLayer::getGuiTextured, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);""",
+        "1.21.4 InGameHudMixin crosshair color param"
+    )
+
+    # 1.21.4: WorldRenderer.render() has ObjectAllocator AND loses LightmapTextureManager
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            LightmapTextureManager lightmapTextureManager,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            net.minecraft.client.util.ObjectAllocator allocator,
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        "1.21.4 WorldRendererMixin ObjectAllocator + no LightmapTextureManager"
+    )
+
+    # Remove unused LightmapTextureManager import
+    remove_line_containing(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        "import net.minecraft.client.render.LightmapTextureManager;",
+        "1.21.4 Remove LightmapTextureManager import"
+    )
+
+    try:
+        build_version("1.21.4", "1.21.4+build.8", "0.119.4+1.21.4",
+                       "IWantToHitFromThreeBlocks-v1.0.0-1.21.4.jar")
+    except subprocess.CalledProcessError:
+        print("!! 1.21.4 build FAILED!")
+
+    # Restore all files back to 1.21.1 state before 1.20.x patches
+    print("\n--- Restoring files for 1.20.x builds ---")
+    for src, bak in BACKUP_FILES:
+        shutil.copy(bak, src)
+
+    # ================================================================
     # COMMON PATCHES for all 1.20.x versions
     # ================================================================
     print("\n--- Applying COMMON patches ---")
@@ -242,7 +382,27 @@ try:
         replace_all=True
     )
 
-    # 9-10. HitDistanceEditScreen: No dirt texture patches needed (removed in favor of solid dark bg)
+    # 9. Reach: getEntityInteractionRange() doesn't exist in 1.20.x, use hardcoded fallback
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        "player.getEntityInteractionRange()",
+        "(player.isCreative() ? 5.0 : 3.0)",
+        "1.20.x InGameHudMixin hardcoded reach"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/render/ReachOverlayRenderer.java",
+        "player.getEntityInteractionRange()",
+        "(player.isCreative() ? 5.0 : 3.0)",
+        "1.20.x ReachOverlayRenderer hardcoded reach"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/render/ReachOverlay3DRenderer.java",
+        "player.getEntityInteractionRange()",
+        "(player.isCreative() ? 5.0 : 3.0)",
+        "1.20.x ReachOverlay3DRenderer hardcoded reach"
+    )
+
+    # 10. HitDistanceEditScreen: No dirt texture patches needed (removed in favor of solid dark bg)
 
     # ================================================================
     # 1.20.2 BUILD
@@ -307,6 +467,14 @@ try:
         "pvpReachOverlay$afterCrosshair(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci)",
         "pvpReachOverlay$afterCrosshair(DrawContext context, CallbackInfo ci)",
         "Re-apply: Remove RenderTickCounter param"
+    )
+
+    # Re-apply reach downgrade (backup has 1.21.1 source with getEntityInteractionRange)
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        "player.getEntityInteractionRange()",
+        "(player.isCreative() ? 5.0 : 3.0)",
+        "Re-apply: 1.20.1 InGameHudMixin hardcoded reach"
     )
 
     print("\n--- Applying 1.20.1-specific patches ---")

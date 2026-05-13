@@ -29,7 +29,7 @@ public class HitDistanceEditScreen extends Screen {
     private AlphaSlider alphaSlider;
 
     private static final int MENU_W = 140;
-    private static final int MENU_H = 50;
+    private static final int MENU_H = 65;
 
 
     private static final int RESIZE_ZONE = 14;
@@ -55,6 +55,8 @@ public class HitDistanceEditScreen extends Screen {
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), btn -> {
             config.setHudX((float) hudPixelX / this.width);
             config.setHudY((float) hudPixelY / this.height);
+            config.setHudScale(hudScale);
+            config.save();
             this.client.setScreen(parent);
         }).dimensions(this.width / 2 - 50, this.height - 30, 100, 20).build());
 
@@ -183,7 +185,7 @@ public class HitDistanceEditScreen extends Screen {
             int cmx = alphaSlider.getX() - 10;
             int cmy = alphaSlider.getY() - 10;
             int cmw = MENU_W;
-            int cmh = MENU_H + 20;
+            int cmh = MENU_H;
 
             // Push z-level so menu renders above all HUD text
             ctx.getMatrices().push();
@@ -208,20 +210,27 @@ public class HitDistanceEditScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        // If menu is open and we left-click outside it, close it
-        if (contextMenuOpen && button == 0) {
+        // ── Context menu interaction takes priority over everything ──
+        if (contextMenuOpen) {
             int cx = alphaSlider.getX() - 10;
             int cy = alphaSlider.getY() - 10;
-            if (!(mx >= cx && mx <= cx + MENU_W && my >= cy && my <= cy + MENU_H + 20)) {
+            boolean insideMenu = mx >= cx && mx <= cx + MENU_W && my >= cy && my <= cy + MENU_H;
+
+            if (insideMenu) {
+                // Let widgets (slider, button) handle the click, nothing else
+                return super.mouseClicked(mx, my, button);
+            } else {
+                // Close menu and swallow the click so nothing behind activates
                 contextMenuOpen = false;
                 alphaSlider.visible = false;
                 alphaSlider.active = false;
                 borderToggleButton.visible = false;
                 borderToggleButton.active = false;
+                return true;
             }
         }
 
-        if (button == 1) { // Right click
+        if (button == 1) { // Right click — open context menu
             int padX = 6, padY = 4, lineSpacing = 4;
             int fontH = this.client.textRenderer.fontHeight;
             int maxTextWidth = Math.max(this.client.textRenderer.getWidth("2.85 block"), this.client.textRenderer.getWidth("avg: 2.56 (42)"));
@@ -232,7 +241,7 @@ public class HitDistanceEditScreen extends Screen {
 
             if (mx >= hudPixelX && mx <= hudPixelX + panelW && my >= hudPixelY && my <= hudPixelY + panelH) {
                 contextMenuOpen = true;
-                int totalMenuH = MENU_H + 20;
+                int totalMenuH = MENU_H;
                 int menuX = (int)mx;
                 int menuY = (int)my;
                 
@@ -266,20 +275,23 @@ public class HitDistanceEditScreen extends Screen {
             int panelW = (int)(basePanelW * hudScale);
             int panelH = (int)(basePanelH * hudScale);
 
+            // Scale resize zone proportionally, clamped to [6, 14]
+            int scaledRZ = Math.max(3, Math.min(14, (int)(RESIZE_ZONE * hudScale)));
+
             // TL corner
-            if (mx >= hudPixelX && mx <= hudPixelX + RESIZE_ZONE && my >= hudPixelY && my <= hudPixelY + RESIZE_ZONE) {
+            if (mx >= hudPixelX && mx <= hudPixelX + scaledRZ && my >= hudPixelY && my <= hudPixelY + scaledRZ) {
                 resizeCorner = 1; return true;
             }
             // TR corner
-            if (mx >= hudPixelX + panelW - RESIZE_ZONE && mx <= hudPixelX + panelW && my >= hudPixelY && my <= hudPixelY + RESIZE_ZONE) {
+            if (mx >= hudPixelX + panelW - scaledRZ && mx <= hudPixelX + panelW && my >= hudPixelY && my <= hudPixelY + scaledRZ) {
                 resizeCorner = 2; return true;
             }
             // BL corner
-            if (mx >= hudPixelX && mx <= hudPixelX + RESIZE_ZONE && my >= hudPixelY + panelH - RESIZE_ZONE && my <= hudPixelY + panelH) {
+            if (mx >= hudPixelX && mx <= hudPixelX + scaledRZ && my >= hudPixelY + panelH - scaledRZ && my <= hudPixelY + panelH) {
                 resizeCorner = 3; return true;
             }
             // BR corner
-            if (mx >= hudPixelX + panelW - RESIZE_ZONE && mx <= hudPixelX + panelW && my >= hudPixelY + panelH - RESIZE_ZONE && my <= hudPixelY + panelH) {
+            if (mx >= hudPixelX + panelW - scaledRZ && mx <= hudPixelX + panelW && my >= hudPixelY + panelH - scaledRZ && my <= hudPixelY + panelH) {
                 resizeCorner = 4; return true;
             }
 

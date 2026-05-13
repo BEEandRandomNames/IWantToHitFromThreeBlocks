@@ -67,7 +67,7 @@ public class InGameHudMixin {
         if (config != null && config.isCrossColorEnabled()) {
             if (client.player != null && client.world != null) {
                 PlayerEntity player = client.player;
-                double baseReach = player.isCreative() ? 5.0 : 3.0;
+                double baseReach = player.getEntityInteractionRange();
                 double effectiveReach = baseReach + config.getCrossTolerance();
 
                 Vec3d eyePos = player.getEyePos();
