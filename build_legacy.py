@@ -222,6 +222,112 @@ try:
     except subprocess.CalledProcessError:
         print("!! 1.21.4 build FAILED!")
 
+    # Restore all files back to 1.21.1 state before 1.21.5 patches
+    print("\n--- Restoring files for 1.21.5 build ---")
+    for src, bak in BACKUP_FILES:
+        shutil.copy(bak, src)
+
+    # ================================================================
+    # 1.21.5 BUILD
+    # Same as 1.21.4 + getTickDelta->getTickProgress + enableBlend/defaultBlendFunc removed
+    # ================================================================
+    print("\n--- Applying 1.21.5-specific patches ---")
+
+    # 1.21.5: drawTexture requires RenderLayer (same as 1.21.2+)
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
+        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
+        "1.21.5 UpdateNotificationScreen drawTexture RenderLayer"
+    )
+
+    # 1.21.5: crosshair color via drawGuiTexture color param (same as 1.21.2+)
+    # Also remove enableBlend/defaultBlendFunc which no longer exist
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        """                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.setShaderColor(r, g, b, a);
+                    context.drawGuiTexture(CROSSHAIR_TEXTURE, cx, cy, 15, 15);
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);""",
+        """                    int crossColor = ((int)(a * 255) << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+                    context.drawGuiTexture(RenderLayer::getGuiTextured, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);""",
+        "1.21.5 InGameHudMixin crosshair color + remove blend"
+    )
+
+    # 1.21.5: WorldRenderer.render() same as 1.21.4 (ObjectAllocator, no LightmapTextureManager)
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            LightmapTextureManager lightmapTextureManager,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            net.minecraft.client.util.ObjectAllocator allocator,
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        "1.21.5 WorldRendererMixin ObjectAllocator + no LightmapTextureManager"
+    )
+
+    # Remove unused LightmapTextureManager import
+    remove_line_containing(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        "import net.minecraft.client.render.LightmapTextureManager;",
+        "1.21.5 Remove LightmapTextureManager import"
+    )
+
+    # 1.21.5: RenderTickCounter.getTickDelta() -> getTickProgress()
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        "tickCounter.getTickDelta(true)",
+        "tickCounter.getTickProgress(true)",
+        "1.21.5 WorldRendererMixin getTickProgress"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/PvpModClient.java",
+        "tickCounter.getTickDelta(true)",
+        "tickCounter.getTickProgress(true)",
+        "1.21.5 PvpModClient getTickProgress"
+    )
+
+    # 1.21.5: RenderSystem.enableBlend() and defaultBlendFunc() removed
+    # Remove from HitDistanceEditScreen
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        """        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+        com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
+""",
+        "",
+        "1.21.5 HitDistanceEditScreen remove enableBlend"
+    )
+    # Remove from ReachOverlayConfigScreen
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
+        """                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+                com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
+""",
+        "",
+        "1.21.5 ReachOverlayConfigScreen remove enableBlend"
+    )
+
+    try:
+        build_version("1.21.5", "1.21.5+build.1", "0.128.2+1.21.5",
+                       "IWantToHitFromThreeBlocks-v1.0.0-1.21.5.jar")
+    except subprocess.CalledProcessError:
+        print("!! 1.21.5 build FAILED!")
+
     # Restore all files back to 1.21.1 state before 1.20.x patches
     print("\n--- Restoring files for 1.20.x builds ---")
     for src, bak in BACKUP_FILES:
