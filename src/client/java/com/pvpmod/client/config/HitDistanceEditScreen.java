@@ -92,21 +92,26 @@ public class HitDistanceEditScreen extends Screen {
         super.close();
     }
 
-    // Override to prevent 1.21 blur and fix F11 black screen from main menu
+    // Override renderBackground to prevent 1.21 blur effect
+    // This stops the default blur that 1.21 applies to screens
     @Override
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        if (this.client != null && this.client.world != null) {
-            // In-game: dark overlay only, NO blur
-            context.fill(0, 0, this.width, this.height, 0x44000000);
-        } else {
-            // From title screen: dark solid background (reliable across F11 toggle)
-            context.fill(0, 0, this.width, this.height, 0xFF2D2D2D);
-        }
+        // Intentionally empty — we draw our own background in render()
+        // This prevents 1.21's default blur AND the F11 black screen issue
     }
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
-        // renderBackground is called by super.render() via our override
+        // Draw our own background FIRST, before anything else
+        // This is more reliable than renderBackground override across MC versions
+        if (this.client != null && this.client.world != null) {
+            // In-game: semi-transparent dark overlay
+            ctx.fill(0, 0, this.width, this.height, 0x88000000);
+        } else {
+            // From title screen: solid gray background (matches 1.21 style)
+            ctx.fill(0, 0, this.width, this.height, 0xFF404040);
+        }
+
         com.mojang.blaze3d.systems.RenderSystem.enableBlend();
         com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
 

@@ -39,6 +39,11 @@ public class HitDistanceTracker {
     private Entity comboTarget = null; // entity being combo'd
     private boolean comboTargetWasAlive = false; // track death transition
 
+    // Track our own attacks to distinguish from environmental damage (fire, fall, etc.)
+    private Entity lastAttackedEntity = null;
+    private long lastAttackTime = 0;
+    private static final long OUR_ATTACK_WINDOW_MS = 500; // hurtTime from our attack lasts ~500ms (10 ticks)
+
     // Max note level: combo hit 2 + 24 steps = combo 26 is max bell pitch
     private static final int MAX_BELL_COMBO = 26;
 
@@ -82,12 +87,24 @@ public class HitDistanceTracker {
             logger.logHit(distance, targetName); // write to CSV file
         }
 
-        // Damage immunity check (red silhouette)
-        boolean isImmune = target instanceof LivingEntity living && living.hurtTime > 0;
+        // Damage immunity check: only suppress bing if the RED silhouette
+        // is from OUR previous attack, not from environmental damage (fire, fall, etc.)
+        boolean isImmune = false;
+        if (target instanceof LivingEntity living && living.hurtTime > 0) {
+            // Entity is red — but is it from OUR attack?
+            // Check if we recently attacked THIS SAME entity
+            boolean weAttackedRecently = (lastAttackedEntity == target)
+                    && (now - lastAttackTime) < OUR_ATTACK_WINDOW_MS;
+            isImmune = weAttackedRecently;
+        }
+
+        // Record THIS attack for future immunity checks
+        lastAttackedEntity = target;
+        lastAttackTime = now;
 
         // Combo + bing sound logic
         if (isImmune) {
-            // Hit during damage immunity: reset combo and skip sound
+            // Hit during damage immunity FROM OUR ATTACK: reset combo and skip sound
             comboStreak = 0;
             comboTarget = null;
         } else if (config.isBingSoundEnabled() && distance >= config.getBingSoundThreshold()) {
