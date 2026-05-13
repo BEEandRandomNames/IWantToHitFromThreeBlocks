@@ -1,6 +1,7 @@
 package com.pvpmod.client;
 
 import com.pvpmod.client.config.ReachOverlayConfig;
+import com.pvpmod.client.update.UpdateChecker;
 import com.pvpmod.client.hud.HitDistanceHud;
 import com.pvpmod.client.render.ReachOverlay3DRenderer;
 import com.pvpmod.client.render.ReachOverlayRenderer;
@@ -48,6 +49,9 @@ public class PvpModClient implements ClientModInitializer {
         hitLogger = new HitLogger();
         hitTracker = new HitDistanceTracker(config, hitLogger);
         hitHud = new HitDistanceHud(config, hitTracker);
+
+        // Check for mod updates asynchronously
+        UpdateChecker.checkAsync();
 
         // Keybinding: Toggle reach overlay (unbound by default)
         toggleReachKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(

@@ -13,5 +13,10 @@
   "iwanttohitfromthreeblocks.config.loggingOff": "§7Vuruş kaydı §ckapalı§7.\n§7Vuruş mesafelerinizi kaydetmek\n§7için ayarlardan etkinleştirin.",
   "iwanttohitfromthreeblocks.description": "Dinamik 3B blok göstergeleri ve renk değiştiren crosshair ile saldırı menzilinizi görselleştiren, tepki sürenize göre tolerans ayarı yaparak daha iyi pratik yapmanızı amaçlayan bir PVP modudur.",
   "iwanttohitfromthreeblocks.config.openLogs": "Loglarınızı görmek için buraya tıklayın",
-  "iwanttohitfromthreeblocks.hud.block": "blok"
+  "iwanttohitfromthreeblocks.hud.block": "blok",
+  "iwanttohitfromthreeblocks.update.title": "Güncelleme Mevcut",
+  "iwanttohitfromthreeblocks.update.message": "Kullandığınız sürüm için yeni bir güncelleme mevcut:",
+  "iwanttohitfromthreeblocks.update.question": "Yeni sürümü indirmek ister misiniz?",
+  "iwanttohitfromthreeblocks.update.yes": "§aEvet",
+  "iwanttohitfromthreeblocks.update.no": "§cHayır"
 }

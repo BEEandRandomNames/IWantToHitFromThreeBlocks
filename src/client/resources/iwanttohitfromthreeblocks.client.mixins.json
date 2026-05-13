@@ -5,6 +5,7 @@
 	"client": [
 		"InGameHudMixin",
 		"MinecraftClientMixin",
+		"TitleScreenMixin",
 		"WorldRendererMixin"
 	],
 	"injectors": {

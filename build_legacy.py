@@ -71,12 +71,15 @@ fabric_api_version={fapi}
 BACKUP_FILES = [
     ("src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java", "InGameHudMixin.java.bak"),
     ("src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java", "WorldRendererMixin.java.bak"),
+    ("src/client/java/com/pvpmod/client/mixin/TitleScreenMixin.java", "TitleScreenMixin.java.bak"),
     ("src/client/java/com/pvpmod/client/render/ReachOverlay3DRenderer.java", "ReachOverlay3DRenderer.java.bak"),
     ("src/client/java/com/pvpmod/client/render/ReachOverlayRenderer.java", "ReachOverlayRenderer.java.bak"),
     ("src/client/java/com/pvpmod/client/PvpModClient.java", "PvpModClient.java.bak"),
     ("src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java", "HitDistanceEditScreen.java.bak"),
     ("src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java", "ReachOverlayConfigScreen.java.bak"),
     ("src/client/java/com/pvpmod/client/hud/HitDistanceHud.java", "HitDistanceHud.java.bak"),
+    ("src/client/java/com/pvpmod/client/update/UpdateChecker.java", "UpdateChecker.java.bak"),
+    ("src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java", "UpdateNotificationScreen.java.bak"),
 ]
 
 # Backup all files
@@ -272,6 +275,14 @@ try:
         "1.20.2 crosshair flush"
     )
 
+    # 1.20.2: Identifier.of -> new Identifier in UpdateNotificationScreen
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        'Identifier.of("minecraft", "textures/gui/options_background.png")',
+        'new Identifier("minecraft", "textures/gui/options_background.png")',
+        "1.20.2 UpdateNotificationScreen Identifier.of"
+    )
+
     try:
         build_version("1.20.2", "1.20.2+build.4", "0.91.6+1.20.2",
                        "IWantToHitFromThreeBlocks-v1.0.0-1.20.2.jar")
@@ -337,6 +348,20 @@ try:
         "super.renderBackground(ctx, mx, my, delta);",
         "super.renderBackground(ctx);",
         "1.20.1 ReachOverlayConfigScreen renderBackground"
+    )
+    # 1.20.1: UpdateNotificationScreen renderBackground override signature (4 params -> 1 param)
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        "public void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {",
+        "public void renderBackground(DrawContext ctx) {",
+        "1.20.1 UpdateNotificationScreen renderBackground sig"
+    )
+    # 1.20.1: Identifier.of -> new Identifier in UpdateNotificationScreen
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        'new Identifier("minecraft", "textures/gui/options_background.png")',
+        'new Identifier("minecraft", "textures/gui/options_background.png")',
+        "1.20.1 UpdateNotificationScreen Identifier (no-op, already patched)"
     )
 
     # 1.20.1: client.getDebugHud().shouldShowDebugHud() -> client.options.debugEnabled

@@ -13,5 +13,10 @@
   "iwanttohitfromthreeblocks.config.loggingOff": "§7Hit logging is §cdisabled§7.\n§7Enable it in settings to\n§7record your hit distances.",
   "iwanttohitfromthreeblocks.description": "A PVP mod that visualizes your attack reach with dynamic 3D block overlays and a color-changing crosshair, allowing you to practice better by adjusting tolerance based on your reaction time.",
   "iwanttohitfromthreeblocks.config.openLogs": "Click here to view your logs",
-  "iwanttohitfromthreeblocks.hud.block": "block"
+  "iwanttohitfromthreeblocks.hud.block": "block",
+  "iwanttohitfromthreeblocks.update.title": "Update Available",
+  "iwanttohitfromthreeblocks.update.message": "A new update is available for your version:",
+  "iwanttohitfromthreeblocks.update.question": "Would you like to download the new version?",
+  "iwanttohitfromthreeblocks.update.yes": "§aYes",
+  "iwanttohitfromthreeblocks.update.no": "§cNo"
 }
