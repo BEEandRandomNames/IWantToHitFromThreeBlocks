@@ -7,3 +7,7 @@
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+# Mark build/tool scripts as vendored so GitHub shows Java only
+build_legacy.py linguist-vendored
+*.ps1 linguist-vendored
+gradlew linguist-vendored
