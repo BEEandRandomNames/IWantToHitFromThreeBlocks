@@ -23,6 +23,9 @@ public class ReachOverlayConfigScreen extends Screen {
     private final ReachOverlayConfig config;
     private static int activeTab = 0; // static: remembers last open tab
 
+    private static final net.minecraft.util.Identifier DIRT_TEXTURE =
+            net.minecraft.util.Identifier.of("minecraft", "textures/gui/options_background.png");
+
     // Reach tab widgets
     private ColorSlider rRed, rGreen, rBlue, rAlpha;
     private ToleranceSlider rTolerance;
@@ -244,7 +247,13 @@ public class ReachOverlayConfigScreen extends Screen {
         if (this.client != null && this.client.world != null) {
             ctx.fill(0, 0, this.width, this.height, 0x44000000);
         } else {
-            ctx.fill(0, 0, this.width, this.height, 0xFF404040);
+            int tileSize = 32;
+            for (int tx = 0; tx < this.width; tx += tileSize) {
+                for (int ty = 0; ty < this.height; ty += tileSize) {
+                    ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);
+                }
+            }
+            ctx.fill(0, 0, this.width, this.height, 0xAA000000);
         }
         
         // Render widgets (buttons, sliders, etc.)
@@ -357,8 +366,6 @@ public class ReachOverlayConfigScreen extends Screen {
                 // Background for alpha preview (solid dark gray instead of checkerboard)
                 ctx.fill(pvX, pvY, pvX + pvS, pvY + pvS, 0xFF333333);
                 
-                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-                com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
                 
                 // Preview color on top
                 int col = (a << 24) | (r << 16) | (g << 8) | b;

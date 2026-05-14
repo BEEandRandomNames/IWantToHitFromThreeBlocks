@@ -92,14 +92,6 @@ try:
     # ================================================================
     print("\n--- Applying 1.21.2-specific patches ---")
 
-    # 1.21.2: drawTexture now requires RenderLayer::getGuiTextured + float u,v
-    replace_exact(
-        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
-        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
-        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
-        "1.21.2 UpdateNotificationScreen drawTexture RenderLayer"
-    )
-
     # 1.21.2: setShaderColor no longer tints drawGuiTexture with RenderLayer pipeline
     # Replace entire crosshair rendering block to use drawGuiTexture's color parameter
     replace_exact(
@@ -159,14 +151,6 @@ try:
     # Same as 1.21.2 patches + WorldRenderer loses LightmapTextureManager
     # ================================================================
     print("\n--- Applying 1.21.4-specific patches ---")
-
-    # 1.21.4: drawTexture requires RenderLayer (same as 1.21.2)
-    replace_exact(
-        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
-        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
-        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
-        "1.21.4 UpdateNotificationScreen drawTexture RenderLayer"
-    )
 
     # 1.21.4: crosshair color via drawGuiTexture color param (same as 1.21.2)
     replace_exact(
@@ -232,14 +216,6 @@ try:
     # Same as 1.21.4 + getTickDelta->getTickProgress + enableBlend/defaultBlendFunc removed
     # ================================================================
     print("\n--- Applying 1.21.5-specific patches ---")
-
-    # 1.21.5: drawTexture requires RenderLayer (same as 1.21.2+)
-    replace_exact(
-        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
-        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
-        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
-        "1.21.5 UpdateNotificationScreen drawTexture RenderLayer"
-    )
 
     # 1.21.5: crosshair color via drawGuiTexture color param (same as 1.21.2+)
     # Also remove enableBlend/defaultBlendFunc which no longer exist
@@ -465,6 +441,12 @@ try:
         "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
         "ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
         "1.21.6 UpdateNotificationScreen drawTexture RenderPipeline"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
+        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
+        "ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
+        "1.21.6 ReachOverlayConfigScreen drawTexture RenderPipeline"
     )
 
     # --- 6. WorldRenderer.render(): completely new signature ---
@@ -747,6 +729,12 @@ try:
         'new Identifier("minecraft", "textures/gui/options_background.png")',
         "1.20.2 UpdateNotificationScreen Identifier.of"
     )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
+        'Identifier.of("minecraft", "textures/gui/options_background.png")',
+        'new Identifier("minecraft", "textures/gui/options_background.png")',
+        "1.20.2 ReachOverlayConfigScreen Identifier.of"
+    )
 
     try:
         build_version("1.20.2", "1.20.2+build.4", "0.91.6+1.20.2",
@@ -875,3 +863,4 @@ fabric_api_version=0.102.0+1.21.1
 print("\n" + "="*60)
 print("  All builds completed! Files restored to 1.21.1 state.")
 print("="*60)
+

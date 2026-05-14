@@ -95,8 +95,9 @@ public class InGameHudMixin {
 
                     RenderSystem.enableBlend();
                     RenderSystem.defaultBlendFunc();
-                    int crossColor = ((int)(a * 255) << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
-                    context.drawGuiTexture(RenderLayer::getGuiTextured, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);
+                    RenderSystem.setShaderColor(r, g, b, a);
+                    context.drawGuiTexture(CROSSHAIR_TEXTURE, cx, cy, 15, 15);
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
                 }
             }
         }

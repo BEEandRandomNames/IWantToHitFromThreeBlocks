@@ -20,7 +20,6 @@ public class WorldRendererMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void onRender(
-            net.minecraft.client.util.ObjectAllocator allocator,
             RenderTickCounter tickCounter,
             boolean renderBlockOutline,
             Camera camera,
