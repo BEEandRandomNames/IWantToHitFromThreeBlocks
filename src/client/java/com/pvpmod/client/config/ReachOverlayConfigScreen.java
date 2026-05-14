@@ -241,7 +241,11 @@ public class ReachOverlayConfigScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
-        super.renderBackground(ctx, mx, my, delta);
+        if (this.client != null && this.client.world != null) {
+            ctx.fill(0, 0, this.width, this.height, 0x44000000);
+        } else {
+            ctx.fill(0, 0, this.width, this.height, 0xFF404040);
+        }
         
         // Render widgets (buttons, sliders, etc.)
         super.render(ctx, mx, my, delta);

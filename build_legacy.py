@@ -437,7 +437,7 @@ try:
                     context.drawGuiTexture(CROSSHAIR_TEXTURE, cx, cy, 15, 15);
                     RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);""",
         """                    int crossColor = ((int)(a * 255) << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
-                    context.drawGuiTexture(net.minecraft.client.gl.RenderPipelines.CROSSHAIR, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);""",
+                    context.drawGuiTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);""",
         "1.21.6 InGameHudMixin crosshair RenderPipeline + color"
     )
 
@@ -815,12 +815,6 @@ try:
         "public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {",
         "public void renderBackground(DrawContext context) {",
         "1.20.1 HitDistanceEditScreen renderBackground override sig"
-    )
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
-        "super.renderBackground(ctx, mx, my, delta);",
-        "super.renderBackground(ctx);",
-        "1.20.1 ReachOverlayConfigScreen renderBackground"
     )
     # 1.20.1: UpdateNotificationScreen renderBackground override signature (4 params -> 1 param)
     replace_exact(

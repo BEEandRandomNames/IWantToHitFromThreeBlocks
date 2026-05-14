@@ -84,7 +84,7 @@ public class UpdateNotificationScreen extends Screen {
         int tileSize = 16;
         for (int tx = 0; tx < this.width; tx += tileSize) {
             for (int ty = 0; ty < this.height; ty += tileSize) {
-                ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);
+                ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);
             }
         }
 
