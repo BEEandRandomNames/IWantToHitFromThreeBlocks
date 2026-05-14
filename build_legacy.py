@@ -489,6 +489,12 @@ try:
     except subprocess.CalledProcessError:
         print("!! 1.21.6 build FAILED!")
 
+    try:
+        build_version("1.21.7", "1.21.7+build.8", "0.129.0+1.21.7",
+                       "IWantToHitFromThreeBlocks-v1.0.0-1.21.7.jar")
+    except subprocess.CalledProcessError:
+        print("!! 1.21.7 build FAILED!")
+
     # Restore all files back to 1.21.1 state before 1.20.x patches
     print("\n--- Restoring files for 1.20.x builds ---")
     for src, bak in BACKUP_FILES:
