@@ -328,6 +328,205 @@ try:
     except subprocess.CalledProcessError:
         print("!! 1.21.5 build FAILED!")
 
+    # Restore all files back to 1.21.1 state before 1.21.6 patches
+    print("\n--- Restoring files for 1.21.6 build ---")
+    for src, bak in BACKUP_FILES:
+        shutil.copy(bak, src)
+
+    # ================================================================
+    # 1.21.6 BUILD
+    # Major rendering pipeline overhaul:
+    # - Matrix3x2fStack: push->pushMatrix, pop->popMatrix, translate/scale 2D
+    # - drawGuiTexture: Function<Id,RenderLayer> -> RenderPipeline
+    # - RenderSystem.enableBlend/defaultBlendFunc/setShaderColor removed
+    # - WorldRenderer.render: completely new signature
+    # - getTickDelta -> getTickProgress (same as 1.21.5)
+    # ================================================================
+    print("\n--- Applying 1.21.6-specific patches ---")
+
+    # --- 1. Matrix3x2fStack: push/pop -> pushMatrix/popMatrix ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        "context.getMatrices().push();",
+        "context.getMatrices().pushMatrix();",
+        "1.21.6 InGameHudMixin pushMatrix"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        "context.getMatrices().pop();",
+        "context.getMatrices().popMatrix();",
+        "1.21.6 InGameHudMixin popMatrix"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        "ctx.getMatrices().push();",
+        "ctx.getMatrices().pushMatrix();",
+        "1.21.6 HitDistanceEditScreen pushMatrix",
+        replace_all=True
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        "ctx.getMatrices().pop();",
+        "ctx.getMatrices().popMatrix();",
+        "1.21.6 HitDistanceEditScreen popMatrix",
+        replace_all=True
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/hud/HitDistanceHud.java",
+        "ctx.getMatrices().push();",
+        "ctx.getMatrices().pushMatrix();",
+        "1.21.6 HitDistanceHud pushMatrix"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/hud/HitDistanceHud.java",
+        "ctx.getMatrices().pop();",
+        "ctx.getMatrices().popMatrix();",
+        "1.21.6 HitDistanceHud popMatrix"
+    )
+
+    # --- 2. translate/scale: 3D -> 2D (remove z component) ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        "context.getMatrices().translate(centerX, crosshairTop - 2, 0);",
+        "context.getMatrices().translate(centerX, crosshairTop - 2);",
+        "1.21.6 InGameHudMixin translate 2D"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        "context.getMatrices().scale(HIT_TEXT_SCALE, HIT_TEXT_SCALE, 1.0f);",
+        "context.getMatrices().scale(HIT_TEXT_SCALE, HIT_TEXT_SCALE);",
+        "1.21.6 InGameHudMixin scale 2D"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        "ctx.getMatrices().translate(hudPixelX, hudPixelY, 0);",
+        "ctx.getMatrices().translate(hudPixelX, hudPixelY);",
+        "1.21.6 HitDistanceEditScreen translate HUD 2D"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        "ctx.getMatrices().scale(hudScale, hudScale, 1.0f);",
+        "ctx.getMatrices().scale(hudScale, hudScale);",
+        "1.21.6 HitDistanceEditScreen scale 2D"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        "ctx.getMatrices().translate(0, 0, 200);",
+        "ctx.getMatrices().translate(0, 0);",
+        "1.21.6 HitDistanceEditScreen translate context menu 2D"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/hud/HitDistanceHud.java",
+        "ctx.getMatrices().translate(posX, posY, 0);",
+        "ctx.getMatrices().translate(posX, posY);",
+        "1.21.6 HitDistanceHud translate 2D"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/hud/HitDistanceHud.java",
+        "ctx.getMatrices().scale(scale, scale, 1.0f);",
+        "ctx.getMatrices().scale(scale, scale);",
+        "1.21.6 HitDistanceHud scale 2D"
+    )
+
+    # --- 3. Crosshair rendering: remove blend + setShaderColor, use RenderPipeline + color param ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/InGameHudMixin.java",
+        """                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.setShaderColor(r, g, b, a);
+                    context.drawGuiTexture(CROSSHAIR_TEXTURE, cx, cy, 15, 15);
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);""",
+        """                    int crossColor = ((int)(a * 255) << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+                    context.drawGuiTexture(net.minecraft.client.gl.RenderPipelines.CROSSHAIR, CROSSHAIR_TEXTURE, cx, cy, 15, 15, crossColor);""",
+        "1.21.6 InGameHudMixin crosshair RenderPipeline + color"
+    )
+
+    # --- 4. enableBlend/defaultBlendFunc removed ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/HitDistanceEditScreen.java",
+        """        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+        com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
+""",
+        "",
+        "1.21.6 HitDistanceEditScreen remove enableBlend"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
+        """                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+                com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
+""",
+        "",
+        "1.21.6 ReachOverlayConfigScreen remove enableBlend"
+    )
+
+    # --- 5. drawTexture: RenderLayer -> RenderPipeline ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
+        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
+        "ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
+        "1.21.6 UpdateNotificationScreen drawTexture RenderPipeline"
+    )
+
+    # --- 6. WorldRenderer.render(): completely new signature ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            GameRenderer gameRenderer,
+            LightmapTextureManager lightmapTextureManager,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            CallbackInfo ci) {""",
+        """    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(
+            net.minecraft.client.util.ObjectAllocator allocator,
+            RenderTickCounter tickCounter,
+            boolean renderBlockOutline,
+            Camera camera,
+            Matrix4f positionMatrix,
+            Matrix4f projectionMatrix,
+            com.mojang.blaze3d.buffers.GpuBufferSlice lightData,
+            org.joml.Vector4f fogColor,
+            boolean fogEnabled,
+            CallbackInfo ci) {""",
+        "1.21.6 WorldRendererMixin new render signature"
+    )
+
+    # Remove unused imports
+    remove_line_containing(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        "import net.minecraft.client.render.LightmapTextureManager;",
+        "1.21.6 Remove LightmapTextureManager import"
+    )
+    remove_line_containing(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        "import net.minecraft.client.render.GameRenderer;",
+        "1.21.6 Remove GameRenderer import"
+    )
+
+    # --- 7. getTickDelta -> getTickProgress (same as 1.21.5) ---
+    replace_exact(
+        "src/client/java/com/pvpmod/client/mixin/WorldRendererMixin.java",
+        "tickCounter.getTickDelta(true)",
+        "tickCounter.getTickProgress(true)",
+        "1.21.6 WorldRendererMixin getTickProgress"
+    )
+    replace_exact(
+        "src/client/java/com/pvpmod/client/PvpModClient.java",
+        "tickCounter.getTickDelta(true)",
+        "tickCounter.getTickProgress(true)",
+        "1.21.6 PvpModClient getTickProgress"
+    )
+
+    try:
+        build_version("1.21.6", "1.21.6+build.1", "0.128.2+1.21.6",
+                       "IWantToHitFromThreeBlocks-v1.0.0-1.21.6.jar")
+    except subprocess.CalledProcessError:
+        print("!! 1.21.6 build FAILED!")
+
     # Restore all files back to 1.21.1 state before 1.20.x patches
     print("\n--- Restoring files for 1.20.x builds ---")
     for src, bak in BACKUP_FILES:
