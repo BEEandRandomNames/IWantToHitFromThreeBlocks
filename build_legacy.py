@@ -503,6 +503,13 @@ try:
         "1.21.6 PvpModClient getTickProgress"
     )
 
+    # --- 8. Fix alpha channels for text rendering in 1.21.6 ---
+    with open("src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java", "r", encoding="utf-8") as f:
+        content = f.read()
+    content = content.replace("0xFFFFFF", "0xFFFFFFFF").replace("0xAAAAAA", "0xFFAAAAAA").replace("0x666666", "0xFF666666").replace("0xAABBFF", "0xFFAABBFF").replace("0x888888", "0xFF888888")
+    with open("src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java", "w", encoding="utf-8") as f:
+        f.write(content)
+
     try:
         build_version("1.21.6", "1.21.6+build.1", "0.128.2+1.21.6",
                        "IWantToHitFromThreeBlocks-v1.0.0-1.21.6.jar")
