@@ -23,9 +23,6 @@ public class ReachOverlayConfigScreen extends Screen {
     private final ReachOverlayConfig config;
     private static int activeTab = 0; // static: remembers last open tab
 
-    private static final net.minecraft.util.Identifier DIRT_TEXTURE =
-            net.minecraft.util.Identifier.of("minecraft", "textures/gui/options_background.png");
-
     // Reach tab widgets
     private ColorSlider rRed, rGreen, rBlue, rAlpha;
     private ToleranceSlider rTolerance;
@@ -247,12 +244,6 @@ public class ReachOverlayConfigScreen extends Screen {
         if (this.client != null && this.client.world != null) {
             ctx.fill(0, 0, this.width, this.height, 0x44000000);
         } else {
-            int tileSize = 32;
-            for (int tx = 0; tx < this.width; tx += tileSize) {
-                for (int ty = 0; ty < this.height; ty += tileSize) {
-                    ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);
-                }
-            }
             ctx.fill(0, 0, this.width, this.height, 0xAA000000);
         }
         
@@ -265,7 +256,7 @@ public class ReachOverlayConfigScreen extends Screen {
             int sx = this.width / 2 + 115; // anchored to buttons' right edge
             int sy = 40;
 
-            ctx.drawTextWithShadow(this.textRenderer, "§e§lSession Stats", sx, sy, 0xFFFFFF);
+            ctx.drawTextWithShadow(this.textRenderer, "§e§lSession Stats", sx, sy, 0xFFFFFF | 0xFF000000);
             sy += 14;
 
             int hits = PvpModClient.getHitTracker().getLogger().getSessionHitCount();
@@ -273,21 +264,21 @@ public class ReachOverlayConfigScreen extends Screen {
             double avg = PvpModClient.getHitTracker().getLogger().getSessionAverage();
 
             ctx.drawTextWithShadow(this.textRenderer,
-                    "Hits: §f" + hitsDisplay, sx, sy, 0xAAAAAA);
+                    "Hits: §f" + hitsDisplay, sx, sy, 0xAAAAAA | 0xFF000000);
             sy += 12;
             ctx.drawTextWithShadow(this.textRenderer,
-                    String.format("Avg: §a%.2f", avg), sx, sy, 0xAAAAAA);
+                    String.format("Avg: §a%.2f", avg), sx, sy, 0xAAAAAA | 0xFF000000);
             sy += 12;
             double maxHit = PvpModClient.getHitTracker().getLogger().getSessionMaxDistance();
             ctx.drawTextWithShadow(this.textRenderer,
                     String.format("Max Hit Reach: §f%.2f", maxHit),
-                    sx, sy, 0xAAAAAA);
+                    sx, sy, 0xAAAAAA | 0xFF000000);
             sy += 16;
 
             // Rank display
             if (hits > 0) {
                 String rankLetter = HitDistanceTracker.getRankLetter(avg);
-                ctx.drawTextWithShadow(this.textRenderer, "Rank:", sx, sy, 0xAAAAAA);
+                ctx.drawTextWithShadow(this.textRenderer, "Rank:", sx, sy, 0xAAAAAA | 0xFF000000);
                 int rankX = sx + this.textRenderer.getWidth("Rank: ");
                 if ("S".equals(rankLetter)) {
                     int rainbow = HitDistanceTracker.getSRankRainbowColor();
@@ -298,7 +289,7 @@ public class ReachOverlayConfigScreen extends Screen {
                     ctx.drawTextWithShadow(this.textRenderer, rankLetter, rankX, sy, rankColor);
                 }
             } else {
-                ctx.drawTextWithShadow(this.textRenderer, "Rank: §7-", sx, sy, 0xAAAAAA);
+                ctx.drawTextWithShadow(this.textRenderer, "Rank: §7-", sx, sy, 0xAAAAAA | 0xFF000000);
             }
             sy += 16;
 
@@ -307,7 +298,7 @@ public class ReachOverlayConfigScreen extends Screen {
                 String[] lines = Text.translatable("iwanttohitfromthreeblocks.config.loggingOff")
                         .getString().split("\n");
                 for (String line : lines) {
-                    ctx.drawTextWithShadow(this.textRenderer, line, sx, sy, 0xAAAAAA);
+                    ctx.drawTextWithShadow(this.textRenderer, line, sx, sy, 0xAAAAAA | 0xFF000000);
                     sy += 10;
                 }
                 logLinkVisible = false;
@@ -371,9 +362,9 @@ public class ReachOverlayConfigScreen extends Screen {
                 int col = (a << 24) | (r << 16) | (g << 8) | b;
                 ctx.fill(pvX, pvY, pvX + pvS, pvY + pvS, col);
                 // White border
-                this.drawBorder(ctx, pvX, pvY, pvS, pvS, 0xFFFFFFFF);
+                this.drawBorder(ctx, pvX, pvY, pvS, pvS, -1);
                 ctx.drawCenteredTextWithShadow(this.textRenderer, Text.literal("Preview"),
-                        pvX + pvS / 2, pvY - 11, 0xAAAAAA);
+                        pvX + pvS / 2, pvY - 11, 0xAAAAAA | 0xFF000000);
             }
         }
     }

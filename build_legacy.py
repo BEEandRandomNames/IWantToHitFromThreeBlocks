@@ -289,14 +289,7 @@ try:
         "1.21.5 HitDistanceEditScreen remove enableBlend"
     )
     # Remove from ReachOverlayConfigScreen
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
-        """                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-                com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
-""",
-        "",
-        "1.21.5 ReachOverlayConfigScreen remove enableBlend"
-    )
+
 
     try:
         build_version("1.21.5", "1.21.5+build.1", "0.128.2+1.21.5",
@@ -426,28 +419,8 @@ try:
         "",
         "1.21.6 HitDistanceEditScreen remove enableBlend"
     )
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
-        """                com.mojang.blaze3d.systems.RenderSystem.enableBlend();
-                com.mojang.blaze3d.systems.RenderSystem.defaultBlendFunc();
-""",
-        "",
-        "1.21.6 ReachOverlayConfigScreen remove enableBlend"
-    )
 
-    # --- 5. drawTexture: RenderLayer -> RenderPipeline ---
-    replace_exact(
-        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
-        "ctx.drawTexture(DIRT_TEXTURE, tx, ty, 0, 0, tileSize, tileSize, tileSize, tileSize);",
-        "ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
-        "1.21.6 UpdateNotificationScreen drawTexture RenderPipeline"
-    )
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
-        "ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
-        "ctx.drawTexture(net.minecraft.client.gl.RenderPipelines.GUI_TEXTURED, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);",
-        "1.21.6 ReachOverlayConfigScreen drawTexture RenderPipeline"
-    )
+
 
     # --- 6. WorldRenderer.render(): completely new signature ---
     replace_exact(
@@ -729,19 +702,7 @@ try:
         "1.20.2 crosshair flush"
     )
 
-    # 1.20.2: Identifier.of -> new Identifier in UpdateNotificationScreen
-    replace_exact(
-        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
-        'Identifier.of("minecraft", "textures/gui/options_background.png")',
-        'new Identifier("minecraft", "textures/gui/options_background.png")',
-        "1.20.2 UpdateNotificationScreen Identifier.of"
-    )
-    replace_exact(
-        "src/client/java/com/pvpmod/client/config/ReachOverlayConfigScreen.java",
-        'Identifier.of("minecraft", "textures/gui/options_background.png")',
-        'new Identifier("minecraft", "textures/gui/options_background.png")',
-        "1.20.2 ReachOverlayConfigScreen Identifier.of"
-    )
+
 
     try:
         build_version("1.20.2", "1.20.2+build.4", "0.91.6+1.20.2",
@@ -818,13 +779,8 @@ try:
         "public void renderBackground(DrawContext ctx) {",
         "1.20.1 UpdateNotificationScreen renderBackground sig"
     )
-    # 1.20.1: Identifier.of -> new Identifier in UpdateNotificationScreen
-    replace_exact(
-        "src/client/java/com/pvpmod/client/update/UpdateNotificationScreen.java",
-        'new Identifier("minecraft", "textures/gui/options_background.png")',
-        'new Identifier("minecraft", "textures/gui/options_background.png")',
-        "1.20.1 UpdateNotificationScreen Identifier (no-op, already patched)"
-    )
+
+
 
     # 1.20.1: client.getDebugHud().shouldShowDebugHud() -> client.options.debugEnabled
     replace_exact(
@@ -870,4 +826,5 @@ fabric_api_version=0.102.0+1.21.1
 print("\n" + "="*60)
 print("  All builds completed! Files restored to 1.21.1 state.")
 print("="*60)
+
 

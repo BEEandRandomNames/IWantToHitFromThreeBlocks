@@ -22,9 +22,6 @@ import java.net.URI;
  */
 public class UpdateNotificationScreen extends Screen {
 
-    private static final Identifier DIRT_TEXTURE =
-            Identifier.of("minecraft", "textures/gui/options_background.png");
-
     private final Screen parent;
     private final String currentVersion;
     private final String latestVersion;
@@ -80,13 +77,7 @@ public class UpdateNotificationScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
-        // Step 1: Tile dirt texture manually (avoids 1.21 blur entirely)
-        int tileSize = 16;
-        for (int tx = 0; tx < this.width; tx += tileSize) {
-            for (int ty = 0; ty < this.height; ty += tileSize) {
-                ctx.drawTexture(net.minecraft.client.render.RenderLayer::getGuiTextured, DIRT_TEXTURE, tx, ty, 0.0f, 0.0f, tileSize, tileSize, tileSize, tileSize);
-            }
-        }
+
 
         // Step 2: Dark tint overlay (loading screen look)
         ctx.fill(0, 0, this.width, this.height, 0xAA000000);
